@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PennCraft.Desktop/PennCraft.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PennCraft.Desktop.Tests/PennCraft.Desktop.Tests.csproj" />
+  </Folder>
+</Solution>
