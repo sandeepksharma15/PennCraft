@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" Version="3.2.2" />
-    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.0.2" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="1.9.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/PennCraft.Desktop/PennCraft.Desktop.csproj" />
