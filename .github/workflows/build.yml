@@ -2,11 +2,18 @@ name: Build and test
 
 on:
   push:
+    branches: [master]
   pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  windows:
+  build-and-test:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -15,6 +22,6 @@ jobs:
       - name: Restore
         run: dotnet restore PennCraft.slnx
       - name: Build
-        run: dotnet build PennCraft.slnx --no-restore -c Release
+        run: dotnet build PennCraft.slnx --no-restore --configuration Release
       - name: Test
-        run: dotnet test PennCraft.slnx --no-build -c Release
+        run: dotnet test PennCraft.slnx --no-build --configuration Release
