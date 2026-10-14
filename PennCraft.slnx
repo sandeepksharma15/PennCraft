@@ -1,4 +1,14 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/architecture.md" />
+    <File Path="docs/features.md" />
+    <File Path="docs/roadmap.md" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".github/copilot-instructions.md" />
+    <File Path=".github/copilot-memory.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/PennCraft.Desktop/PennCraft.Desktop.csproj" />
   </Folder>

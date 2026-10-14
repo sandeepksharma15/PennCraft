@@ -1,0 +1,89 @@
+name: Craft.Extensions CI
+
+on:
+  push:
+    paths:
+      - 'Source/Core/Craft.Extensions/**'
+      - 'Tests/Core/Craft.Extensions.Tests/**'
+      - '.github/workflows/craft-extensions.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'Source/Core/Craft.Extensions/**'
+      - 'Tests/Core/Craft.Extensions.Tests/**'
+      - '.github/workflows/craft-extensions.yml'
+  workflow_dispatch:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    env:
+      DOTNET_TEST_RUNNER: Microsoft.Testing.Platform
+    name: Build and test Craft.Extensions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 11 preview
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0'
+          dotnet-quality: preview
+
+      - name: Show SDK
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore Tests/Core/Craft.Extensions.Tests/Craft.Extensions.Tests.csproj
+
+      - name: Build
+        run: dotnet build Tests/Core/Craft.Extensions.Tests/Craft.Extensions.Tests.csproj --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: >
+          dotnet test Tests/Core/Craft.Extensions.Tests/Craft.Extensions.Tests.csproj
+          --configuration Release
+          --no-build
+          --coverlet
+          --coverlet-include "[Craft.Extensions]*"
+          --coverlet-output-format cobertura
+
+      - name: Verify 100% line coverage
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import glob
+          import sys
+          import xml.etree.ElementTree as ET
+
+          reports = glob.glob("TestResults/coverage*.xml", recursive=True)
+          if not reports:
+              print("No Cobertura coverage report was produced.")
+              sys.exit(1)
+
+          report = reports[0]
+          root = ET.parse(report).getroot()
+          line_rate = float(root.attrib.get("line-rate", "0"))
+          lines_valid = int(root.attrib.get("lines-valid", "0"))
+          lines_covered = int(root.attrib.get("lines-covered", "0"))
+
+          print(f"Coverage: {lines_covered}/{lines_valid} lines ({line_rate:.2%})")
+
+          if lines_valid == 0 or line_rate < 1.0:
+              print("Required line coverage is 100%.")
+              sys.exit(1)
+          PY
+
+      - name: Upload test and coverage results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: craft-extensions-test-results
+          path: |
+            TestResults/coverage*.xml
+          if-no-files-found: warn
