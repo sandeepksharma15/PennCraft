@@ -1,21 +1,19 @@
 # Development roadmap
 
-Build in small, usable increments. Each phase includes tests, build verification, and Windows behavior checks.
-
 | Phase | Deliverable |
 | --- | --- |
-| 0 — Feasibility | Validate desktop placement, z-order, hit testing, drag-and-drop, Explorer restart, DPI, and multi-monitor behavior |
-| 1 — Pens | Create, move, resize, rename, delete, and display items |
-| 2 — Persistence | Durable layouts and recovery across sessions and display changes |
-| 3 — Portals | Live folder-backed containers and file interactions |
-| 4 — Rules | Non-destructive automatic organization and rule previews |
-| 5 — Interaction | Fold, scroll, tabs, context menus, and icon scaling |
-| 6 — Workspaces | Pages, snapshots, layout backup/restore, monitor-aware profiles |
-| 7 — Personalization | Styling, themes, animations, and settings import/export |
-| 8 — Distribution | Installer, startup integration, diagnostics, accessibility, and performance checks |
+| 0 — Feasibility | Desktop placement, z-order, hit testing, drag, Explorer restart, DPI, multi-monitor validation |
+| 1 — Pens | Create, move, resize, rename, delete, display items |
+| 2 — Persistence | Durable layouts and display recovery |
+| 3 — Portals | Live folder-backed containers |
+| 4 — Rules | Non-destructive automatic organization |
+| 5 — Interaction | Fold, scroll, tabs, menus, scaling |
+| 6 — Workspaces | Pages, snapshots, monitor profiles |
+| 7 — Personalization | Themes, animation, import/export |
+| 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Next milestone: 0.1
+## Milestone 0.1
 
-Create a desktop-level titled surface that can be dragged and resized, leaves normal desktop interaction intact outside its bounds, and recovers from Explorer restart. Include diagnostic logging.
+Implemented an independent, non-activating desktop-focus Pen prototype with movement, resizing, diagnostics and best-effort shell rediscovery. See [implementation and manual checklist](milestone-0.1.md).
 
-**Gate:** demonstrate this behavior on Windows 11 without replacing Explorer, injecting into Explorer, or moving user files. If the overlay cannot reliably coexist with the shell, reassess integration before proceeding.
+**Feasibility gate remains pending:** demonstrate coexistence on Windows 11 without replacing/injecting into Explorer or moving user files. CI establishes build/test results only. Reassess integration if manual checks fail.

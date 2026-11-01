@@ -32,3 +32,7 @@ Keep visual organization separate from physical file moves. Persist changes safe
 ## Verification
 
 Unit test pure behavior and persistence; integration-test Windows boundaries; manually exercise Explorer restart, display topology, DPI changes, drag-and-drop, and accessibility on supported Windows versions. Never infer shell reliability solely from mocks.
+
+## Milestone 0.1 implementation
+
+The prototype uses an independent non-activating top-level window, a conservative desktop-foreground visibility gate, and shell handle/process rediscovery. It never parents into Explorer. See [tradeoffs, diagnostics and manual acceptance](milestone-0.1.md). The feasibility gate remains open until Windows 11 manual verification.
