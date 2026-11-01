@@ -63,9 +63,11 @@ public partial class MainWindow : Window
         Width = settings.Width;
         Height = settings.Height;
         TitleLabel.Text = settings.Title;
-        PenBody.Background = new SolidColorBrush(Color.FromArgb(
-            (byte)Math.Round(settings.BackgroundOpacity * 255), 12, 10, 18));
+        ApplyBackground();
     }
+
+    private void ApplyBackground() => PenBody.Background = new SolidColorBrush(Color.FromArgb(
+        (byte)Math.Round(settings.BackgroundOpacity * 255), 12, 10, 18));
 
     private void RefreshSurface() => surface?.Refresh(settings.IsVisible);
 
@@ -195,7 +197,7 @@ public partial class MainWindow : Window
             item.Click += (_, _) =>
             {
                 settings = settings with { BackgroundOpacity = value };
-                ApplySettings();
+                ApplyBackground();
                 SaveSettings();
             };
             opacity.Items.Add(item);

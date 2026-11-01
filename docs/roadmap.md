@@ -12,8 +12,8 @@
 | 7 — Personalization | Themes, animation, import/export |
 | 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Milestone 0.1
+## Milestone 0.2
 
-Implemented an independent, non-activating desktop-focus Pen prototype with movement, resizing, diagnostics and best-effort shell rediscovery. See [implementation and manual checklist](milestone-0.1.md).
+Implemented the single Pen foundation: title editing, eight-direction resize, background opacity, hover controls, hide/show through the tray, and atomic JSON persistence. See [usage and manual checklist](milestone-0.2.md).
 
-**Feasibility gate remains pending:** demonstrate coexistence on Windows 11 without replacing/injecting into Explorer or moving user files. CI establishes build/test results only. Reassess integration if manual checks fail.
+The independent HWND now maintains desktop-level visibility without a foreground-focus gate. Interactive acceptance of Win+D, Explorer coexistence and display configurations remains pending; CI establishes build/test results only. Icon management and portals remain future work.
