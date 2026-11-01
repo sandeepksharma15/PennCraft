@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Interop;
 
 namespace PennCraft.Desktop.Windows;
@@ -10,6 +9,7 @@ internal sealed class DesktopSurface : IDisposable
 {
     private readonly nint hwnd;
     private readonly HwndSource source;
+    private bool editing;
     private nint lastShell;
     private uint lastProcess;
     private bool? visible;
@@ -32,7 +32,7 @@ internal sealed class DesktopSurface : IDisposable
 
     private nint Hook(nint window, int message, nint wParam, nint lParam, ref bool handled)
     {
-        if (message == 0x0021) // WM_MOUSEACTIVATE
+        if (message == 0x0021 && !editing) // WM_MOUSEACTIVATE
         {
             handled = true;
             return 3; // MA_NOACTIVATE: retain click, preserve desktop focus.
@@ -45,9 +45,14 @@ internal sealed class DesktopSurface : IDisposable
         return 0;
     }
 
-    public void InvalidateVisibility() => visible = null;
+    public void SetEditing(bool value)
+    {
+        editing = value;
+        var style = Native.GetWindowLongPtr(hwnd, -20);
+        Native.SetWindowLongPtr(hwnd, -20, value ? style & ~0x08000000 : style | 0x08000000);
+    }
 
-    public void Refresh()
+    public void Refresh(bool userVisible = true)
     {
         var shell = Native.GetShellWindow();
         Native.GetWindowThreadProcessId(shell, out var shellProcess);
@@ -58,28 +63,28 @@ internal sealed class DesktopSurface : IDisposable
             lastProcess = shellProcess;
             visible = null;
         }
-        var foreground = Native.GetForegroundWindow();
-        Native.GetWindowThreadProcessId(foreground, out var foregroundProcess);
-        var name = new StringBuilder(256);
-        Native.GetClassName(foreground, name, name.Capacity);
-        var desktop = foregroundProcess == shellProcess &&
-            (name.ToString() is "Progman" or "WorkerW");
-        var show = DesktopPolicy.ShouldShow(shell != 0 && shellProcess != 0, desktop);
-        if (visible == show) return;
-        if (show)
+
+        var show = DesktopPolicy.ShouldShow(shell != 0 && shellProcess != 0, userVisible);
+        if (!show)
         {
-            // Bottom of ordinary top-level windows; never topmost, never activate.
+            if (Native.IsWindowVisible(hwnd)) Native.ShowWindow(hwnd, 0);
+        }
+        else
+        {
+            // Repair native hide/minimize from Show Desktop without changing durable user intent.
+            // Reassert bottom z-order even when another application activates the Pen's popup menu.
+            if (Native.IsIconic(hwnd)) Native.ShowWindow(hwnd, 4); // SW_SHOWNOACTIVATE
             if (!Native.SetWindowPos(hwnd, 1, 0, 0, 0, 0, 0x0010 | 0x0001 | 0x0002 | 0x0040))
             {
                 Diagnostics.Write($"SetWindowPos failed error={Marshal.GetLastWin32Error()}");
                 Native.ShowWindow(hwnd, 0);
-                visible = null; // retry on next poll
+                visible = null;
                 return;
             }
         }
-        else Native.ShowWindow(hwnd, 0);
+
+        if (visible != show) Diagnostics.Write($"visible={show} userVisible={userVisible}");
         visible = show;
-        Diagnostics.Write($"visible={show} foreground={foreground:X} class={name} pid={foregroundProcess}");
     }
 
     public void Dispose()
@@ -96,7 +101,10 @@ internal static class Native
     [DllImport("user32.dll")] internal static extern nint GetShellWindow();
     [DllImport("user32.dll")] internal static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint hwnd, out uint process);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern int GetClassName(nint hwnd, StringBuilder text, int maximum);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool IsWindowVisible(nint hwnd);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool IsIconic(nint hwnd);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern uint RegisterWindowMessage(string message);
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool SetWindowPos(nint hwnd, nint after, int x, int y, int width, int height, uint flags);
