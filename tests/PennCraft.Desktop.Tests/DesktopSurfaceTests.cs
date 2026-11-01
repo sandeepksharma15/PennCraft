@@ -27,6 +27,23 @@ public class DesktopSurfaceTests
                 Assert.Equal(0x08000080L, style & 0x08000080L);
                 Assert.Equal(0L, style & 0x00040008L); // no APPWINDOW or TOPMOST
                 Assert.Equal(foreground, Native.GetForegroundWindow());
+                surface.Refresh(userVisible: false);
+                Assert.False(Native.IsWindowVisible(source.Handle));
+                surface.SetEditing(true);
+                Assert.Equal(0L, (long)Native.GetWindowLongPtr(source.Handle, -20) & 0x08000000L);
+                surface.SetEditing(false);
+                Assert.Equal((nint)3, Native.SendMessage(source.Handle, 0x0021, 0, 0));
+                if (Native.GetShellWindow() != 0)
+                {
+                    surface.Refresh();
+                    Assert.True(Native.IsWindowVisible(source.Handle));
+                    Native.ShowWindow(source.Handle, 0);
+                    surface.Refresh();
+                    Assert.True(Native.IsWindowVisible(source.Handle));
+                    surface.Refresh(userVisible: false);
+                    surface.Refresh(userVisible: false);
+                    Assert.False(Native.IsWindowVisible(source.Handle));
+                }
             }
             catch (Exception exception) { failure = exception; }
         });

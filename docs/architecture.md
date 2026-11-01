@@ -2,7 +2,7 @@
 
 ## Principles
 
-- Independent open-source utility; no Craft dependency.
+- Independent open-source utility.
 - Native Windows experience with minimal idle resource use.
 - Keep Explorer and desktop files untouched by default.
 - Favor documented Windows APIs; treat undocumented shell techniques as experiments.
@@ -33,6 +33,8 @@ Keep visual organization separate from physical file moves. Persist changes safe
 
 Unit test pure behavior and persistence; integration-test Windows boundaries; manually exercise Explorer restart, display topology, DPI changes, drag-and-drop, and accessibility on supported Windows versions. Never infer shell reliability solely from mocks.
 
-## Milestone 0.1 implementation
+## Pen foundation
 
-The prototype uses an independent non-activating top-level window, a conservative desktop-foreground visibility gate, and shell handle/process rediscovery. It never parents into Explorer. See [tradeoffs, diagnostics and manual acceptance](milestone-0.1.md). The feasibility gate remains open until Windows 11 manual verification.
+The WPF window owns presentation and UI event handling. PenSettings is immutable user intent; PenSettingsStore normalizes and atomically replaces a JSON snapshot. PenGeometry implements resize constraints independently of WPF. TrayCommands owns and disposes the notification icon and dispatches commands to WPF.
+
+DesktopSurface isolates native HWND styles, shell rediscovery, visibility and bottom z-order. Temporary native visibility never changes persisted user intent. Explicit rename briefly permits keyboard activation; ordinary dragging and resizing retain no-activate behavior. All shell operations target the Pen HWND; Explorer is never reparented, injected into or modified. See [usage, tradeoffs and acceptance](milestone-0.2.md).

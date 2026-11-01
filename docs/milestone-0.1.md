@@ -1,3 +1,5 @@
+> Historical prototype: superseded by [Milestone 0.2](milestone-0.2.md). The behavior below describes 0.1 only.
+
 # Milestone 0.1 — desktop Pen experiment
 
 ## Run and scope

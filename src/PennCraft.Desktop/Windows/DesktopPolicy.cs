@@ -1,8 +1,7 @@
 namespace PennCraft.Desktop.Windows;
 
-// Kept independent of HWND access so fail-closed decisions can be tested.
+// User visibility survives temporary shell loss and native Show Desktop transitions.
 public static class DesktopPolicy
 {
-    public static bool ShouldShow(bool shellAvailable, bool foregroundIsShellDesktop) =>
-        shellAvailable && foregroundIsShellDesktop;
+    public static bool ShouldShow(bool shellAvailable, bool userVisible) => shellAvailable && userVisible;
 }

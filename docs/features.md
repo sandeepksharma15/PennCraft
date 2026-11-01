@@ -1,6 +1,8 @@
 # Features
 
-Milestone 0.1 implements one movable/resizable Pen, desktop-focus visibility, diagnostics, and best-effort shell recovery. Manual Windows 11 acceptance is pending. See [verification](milestone-0.1.md).\n\nThe broader features below remain **planned**.
+Milestone 0.2 implements one movable/resizable Pen, editable title, translucent background, hover controls, tray visibility commands and persistent settings. Manual Windows 11 acceptance is pending. See [usage and verification](milestone-0.2.md).
+
+The broader features below remain **planned**.
 
 | Area | Scope |
 | --- | --- |
