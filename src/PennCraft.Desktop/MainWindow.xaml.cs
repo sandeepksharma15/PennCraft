@@ -21,6 +21,7 @@ public partial class MainWindow : Window
             timer.Start();
             Refresh(this, EventArgs.Empty);
         };
+        Loaded += (_, _) => { surface?.InvalidateVisibility(); surface?.Refresh(); };
         Closed += (_, _) => { timer.Stop(); surface?.Dispose(); };
     }
 

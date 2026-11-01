@@ -45,6 +45,8 @@ internal sealed class DesktopSurface : IDisposable
         return 0;
     }
 
+    public void InvalidateVisibility() => visible = null;
+
     public void Refresh()
     {
         var shell = Native.GetShellWindow();
@@ -89,6 +91,8 @@ internal sealed class DesktopSurface : IDisposable
 
 internal static class Native
 {
+    [DllImport("user32.dll")] internal static extern nint GetParent(nint hwnd);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern nint SendMessage(nint hwnd, uint message, nint wParam, nint lParam);
     [DllImport("user32.dll")] internal static extern nint GetShellWindow();
     [DllImport("user32.dll")] internal static extern nint GetForegroundWindow();
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint hwnd, out uint process);
