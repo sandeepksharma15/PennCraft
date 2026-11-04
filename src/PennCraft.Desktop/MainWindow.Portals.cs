@@ -7,7 +7,7 @@ namespace PennCraft.Desktop;
 
 public partial class MainWindow
 {
-    private bool IsPortal => settings.PortalFolder is not null;
+    internal bool IsPortal => settings.PortalFolder is not null;
     private string[] portalPaths = [];
     private string[] DisplayPaths => IsPortal ? portalPaths : settings.ItemPaths;
     private readonly DispatcherTimer portalTimer = new() { Interval = TimeSpan.FromSeconds(2) };
@@ -15,7 +15,7 @@ public partial class MainWindow
 
     private void InitializePortal()
     {
-        AllowDrop = false;
+        AllowDrop = true;
         EmptyHint.Text = "This folder is empty";
         portalTimer.Tick += async (_, _) => await RefreshPortalAsync();
         portalTimer.Start();
@@ -24,7 +24,7 @@ public partial class MainWindow
 
     private async Task RefreshPortalAsync()
     {
-        if (itemsDisposed || portalRefreshBusy) return;
+        if (itemsDisposed || portalRefreshBusy || transferBusy || itemMenuBusy || itemDragActive) return;
         portalRefreshBusy = true;
         try
         {
@@ -38,16 +38,18 @@ public partial class MainWindow
         finally { portalRefreshBusy = false; }
     }
 
-    private void ShowPortalItemMenu(PenItem item)
+    internal bool ContainsDisplayedItem(string path) => DisplayPaths.Contains(path, StringComparer.OrdinalIgnoreCase);
+    internal string? PortalFolder => settings.PortalFolder;
+    internal bool FlushBeforePortalMove() => SaveSettings();
+
+    internal async Task ReloadAfterPortalMoveAsync()
     {
-        SelectItem(item);
-        var menu = new ContextMenu { PlacementTarget = this };
-        var open = new MenuItem { Header = "Open" };
-        open.Click += (_, _) => ItemStatus.Text = ShellItemLauncher.Open(item.Path) ?? string.Empty;
-        var explore = new MenuItem { Header = "Show in File Explorer" };
-        explore.Click += (_, _) => ShellContextMenu.ShowInExplorer(item.Path);
-        menu.Items.Add(open);
-        menu.Items.Add(explore);
-        menu.IsOpen = true;
+        if (!IsPortal)
+        {
+            var saved = store.Load();
+            CompleteTransfer(saved);
+        }
+        else ReleaseTransfer();
+        if (IsPortal) await RefreshPortalAsync();
     }
 }

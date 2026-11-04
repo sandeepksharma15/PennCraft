@@ -1,3 +1,7 @@
+## Folder Portal operations
+
+Milestone 0.9 adds single-item moves between Portals, Pens and the user desktop, plus native Portal item menus. See [scope and limitations](milestone-0.9.md).
+
 # Features
 
 Milestone 0.7 adds direct transfers of stored items and external references between Pens, with no-overwrite conflict checks and two-Pen recovery. See [usage and verification](milestone-0.7.md).

@@ -104,10 +104,15 @@ public partial class MainWindow
         // The app owns journaled moves; Explorer must never also delete the drag source.
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (IsPortal || itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive) return;
         try
         {
             if (PreviewInternalTransfer(e)) return;
+            if (IsPortal)
+            {
+                e.Effects = PortalIncomingEffect(e);
+                return;
+            }
             e.Effects = ItemDragPolicy.IncomingEffect(e.AllowedEffects,
                 e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false));
         }
@@ -118,11 +123,12 @@ public partial class MainWindow
     {
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (IsPortal || itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive) return;
         string[] paths;
         try
         {
             if (await DropInternalTransferAsync(e)) return;
+            if (IsPortal) { await DropIntoPortalAsync(e); return; }
             if (ItemDragPolicy.IncomingEffect(e.AllowedEffects,
                     e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false)) == DragDropEffects.None
                 || e.Data.GetData(DataFormats.FileDrop, autoConvert: false) is not string[] dropped) return;
@@ -219,7 +225,7 @@ public partial class MainWindow
 
     private async void ItemMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (IsPortal || itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
             || itemDragOrigin is not { } origin || e.LeftButton != MouseButtonState.Pressed) return;
         var current = e.GetPosition(this);
         if (Math.Abs(current.X - origin.X) < SystemParameters.MinimumHorizontalDragDistance
@@ -248,6 +254,11 @@ public partial class MainWindow
             if (result != PenDragResult.Desktop)
             {
                 ItemStatus.Text = "Item kept in the Pen.";
+                return;
+            }
+            if (IsPortal)
+            {
+                if (Transfers is not null) await Transfers.MovePortalItemToDesktopAsync(session);
                 return;
             }
             itemMovesBusy = true;
