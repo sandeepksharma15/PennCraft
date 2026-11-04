@@ -62,6 +62,7 @@ public sealed class PenMoveServiceTests
             var moved = service.MoveInto(source);
             Assert.True(moved.Moved, moved.Error);
             Assert.Null(service.Acknowledge([moved.OperationId!.Value]));
+            source = Path.Combine(desktop, "same.txt");
             File.WriteAllText(source, "Second");
             Assert.NotNull(service.MoveInto(source).Error);
             Assert.NotNull(service.MoveOut(moved.Destination).Error);

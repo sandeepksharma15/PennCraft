@@ -106,7 +106,11 @@ internal sealed class PenMoveService
         {
             EnsureStorage();
             if (!PenMembership.Exists(source)) return new(source, destination, null, "This item is unavailable.");
-            if (PenMembership.Exists(destination))
+            var expectedParent = intoPen ? desktop : StorageDirectory;
+            if (NativeFileMove.Identity(Path.GetDirectoryName(source)!) != NativeFileMove.Identity(expectedParent))
+                throw new InvalidDataException("The source is outside the authorized move directory.");
+            if (PenMembership.Exists(destination) || Directory.EnumerateFileSystemEntries(Path.GetDirectoryName(destination)!)
+                    .Any(path => string.Equals(Path.GetFileName(path), Path.GetFileName(destination), StringComparison.OrdinalIgnoreCase)))
                 return new(source, destination, null, $"An item named '{Path.GetFileName(destination)}' already exists at the destination. Rename one item and retry.");
             var attributes = File.GetAttributes(source);
             FileSystemInfo item = (attributes & FileAttributes.Directory) != 0

@@ -28,7 +28,7 @@ On restart:
 - Source absent, destination present with the recorded identity: reconcile membership with the completed move, then acknowledge it after settings save.
 - Both present, both missing, unexpected identity, malformed journal or invalid paths: retain files and journal, show a recovery error and block physical moves. Do not guess which copy is authoritative.
 
-If settings or final journal bookkeeping cannot be saved, further moves pause until restart/recovery. The application holds an exclusive per-user settings lock; another instance cannot start against the same settings directory. Exit is deferred while a drag or move operation is active.
+If settings or final journal bookkeeping cannot be saved, further moves pause until restart/recovery. Close any older PennCraft version before upgrading; earlier versions do not participate in this lock. The application holds an exclusive per-user settings lock; another instance cannot start against the same settings directory. Exit is deferred while a drag or move operation is active.
 
 For an unresolved recovery error, inspect Pen storage and the recorded source/destination paths before making changes. Keep a copy of the journal for diagnosis. Files can be accessed through Explorer even when the app is closed. Do not delete Pen storage to reset the app. Automatic reconciliation assumes no unrelated process is replacing/reusing file identities or editing the journal during recovery; external concurrent changes can require manual review. Hardware/filesystem failures can still exceed normal rename/flush guarantees.
 
