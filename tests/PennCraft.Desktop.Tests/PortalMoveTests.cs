@@ -100,6 +100,37 @@ public sealed class PortalMoveTests
         Assert.True(File.Exists(fixture.Service.JournalPath));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CrossVolumeStyleIdentityChangeCommitsOrRetainsRecovery(bool interrupt)
+    {
+        using var fixture = new Fixture();
+        var source = fixture.Source();
+        var sourceIdentity = NativeFileMove.Identity(source);
+        var message = fixture.Service.Move(null, fixture.PortalId, source, fixture.Folder, sourceIdentity, (from, to) =>
+        {
+            File.Copy(from, to);
+            File.Delete(from);
+            if (interrupt) throw new IOException("Stopped before recording destination identity");
+        });
+        var destination = Path.Combine(fixture.Folder, "Item.txt");
+        Assert.False(File.Exists(source));
+        Assert.Equal("source", File.ReadAllText(destination));
+        Assert.NotEqual(sourceIdentity, NativeFileMove.Identity(destination));
+        if (interrupt)
+        {
+            Assert.NotNull(message);
+            Assert.NotNull(fixture.Service.BlockedReason);
+            Assert.True(File.Exists(fixture.Service.JournalPath));
+        }
+        else
+        {
+            Assert.Null(message);
+            Assert.False(File.Exists(fixture.Service.JournalPath));
+        }
+    }
+
     [Fact]
     public void PortalToPortalUsesBothLinkedFolders()
     {
