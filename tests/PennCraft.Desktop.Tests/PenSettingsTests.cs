@@ -14,10 +14,11 @@ public sealed class PenSettingsTests
             var settings = new PenSettings
             {
                 Title = "Creative tools", Left = -450, Top = 220, Width = 420,
-                Height = 180, BackgroundOpacity = 0.55, IsVisible = false
+                Height = 180, BackgroundOpacity = 0.55, IsVisible = false,
+                ItemPaths = [Path.Combine(Path.GetTempPath(), "Saved shortcut.lnk")]
             };
             Assert.True(store.Save(settings));
-            Assert.Equal(settings, store.Load());
+            Assert.Equivalent(settings, store.Load(), strict: true);
             Assert.True(store.Save(settings with { IsVisible = true }));
             Assert.True(store.Load().IsVisible);
         });

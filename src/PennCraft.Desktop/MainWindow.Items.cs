@@ -48,19 +48,27 @@ public partial class MainWindow
     private void PreviewItemDragOver(object sender, DragEventArgs e)
     {
         // Do not deserialize arbitrary formats or offer file-move semantics to Explorer.
-        e.Effects = ItemDragPolicy.IncomingEffect(e.AllowedEffects,
-            e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false));
+        e.Effects = DragDropEffects.None;
         e.Handled = true;
+        try
+        {
+            e.Effects = ItemDragPolicy.IncomingEffect(e.AllowedEffects,
+                e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false));
+        }
+        catch (COMException)
+        {
+            // An unavailable external data object is not a supported drop.
+        }
     }
 
     private void DropItems(object sender, DragEventArgs e)
     {
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (ItemDragPolicy.IncomingEffect(e.AllowedEffects,
-                e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false)) == DragDropEffects.None) return;
         try
         {
+            if (ItemDragPolicy.IncomingEffect(e.AllowedEffects,
+                    e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false)) == DragDropEffects.None) return;
             if (e.Data.GetData(DataFormats.FileDrop, autoConvert: false) is not string[] paths) return;
             var next = PenMembership.Add(settings.ItemPaths, paths);
             var existing = new HashSet<string>(settings.ItemPaths, StringComparer.OrdinalIgnoreCase);
