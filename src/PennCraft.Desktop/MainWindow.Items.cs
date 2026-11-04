@@ -30,7 +30,7 @@ public partial class MainWindow
             ItemStatus.Text = "Windows could not locate the user desktop. Physical moves are unavailable.";
             return;
         }
-        moves = new PenMoveService(desktop);
+        moves = new PenMoveService(desktop, penId);
         itemMovesBusy = true;
         try
         {

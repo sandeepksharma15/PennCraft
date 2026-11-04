@@ -1,3 +1,5 @@
+> Multiple Pens and desktop creation are introduced in [Milestone 0.5](milestone-0.5.md). The move and recovery behavior below remains applicable to each Pen.
+
 # Milestone 0.4 — actual desktop moves
 
 ## Behavior

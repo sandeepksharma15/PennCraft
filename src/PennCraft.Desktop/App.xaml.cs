@@ -6,6 +6,7 @@ namespace PennCraft.Desktop;
 public partial class App : Application
 {
     private FileStream? instanceLock;
+    private WorkspaceController? workspace;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -24,10 +25,22 @@ public partial class App : Application
             return;
         }
         base.OnStartup(e);
+        try
+        {
+            workspace = new WorkspaceController(this);
+        }
+        catch (Exception exception) when (exception is IOException or InvalidDataException
+            or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            MessageBox.Show("The saved workspace could not be opened. Existing settings and files were left untouched.",
+                "PennCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Shutdown();
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        workspace?.Dispose();
         instanceLock?.Dispose();
         base.OnExit(e);
     }

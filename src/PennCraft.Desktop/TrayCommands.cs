@@ -4,29 +4,45 @@ using Forms = System.Windows.Forms;
 
 namespace PennCraft.Desktop;
 
-/// <summary>Owns the notification icon and routes callbacks to the WPF dispatcher.</summary>
+internal sealed record PenTrayEntry(string Title, bool Visible, Action Show, Action Hide, Action Reset);
+
+/// <summary>One notification icon for the workspace, including all hidden Pens.</summary>
 internal sealed class TrayCommands : IDisposable
 {
     private readonly Forms.NotifyIcon icon;
     private readonly Forms.ContextMenuStrip menu = new();
 
-    public TrayCommands(Dispatcher dispatcher, Action show, Action hide, Action reset, Action exit)
+    public TrayCommands(Dispatcher dispatcher, Func<IEnumerable<PenTrayEntry>> entries,
+        Action showAll, Action hideAll, Action create, Func<bool> creationEnabled, Action toggleCreation, Action exit)
     {
-        void Add(string title, Action action) =>
-            menu.Items.Add(title, null, (_, _) => dispatcher.InvokeAsync(action));
-        Add("Show Pen", show);
-        Add("Hide Pen", hide);
-        Add("Reset position and show", reset);
-        menu.Items.Add(new Forms.ToolStripSeparator());
-        Add("Exit PennCraft", exit);
+        void Add(Forms.ToolStripItemCollection target, string title, Action action) =>
+            target.Add(title, null, (_, _) => dispatcher.InvokeAsync(action));
+        menu.Opening += (_, _) =>
+        {
+            foreach (Forms.ToolStripItem item in menu.Items.Cast<Forms.ToolStripItem>().ToArray()) item.Dispose();
+            menu.Items.Clear();
+            Add(menu.Items, "New Pen", create);
+            foreach (var entry in entries())
+            {
+                var pen = new Forms.ToolStripMenuItem(entry.Title) { Checked = entry.Visible };
+                Add(pen.DropDownItems, "Show", entry.Show);
+                Add(pen.DropDownItems, "Hide", entry.Hide);
+                Add(pen.DropDownItems, "Reset position and show", entry.Reset);
+                menu.Items.Add(pen);
+            }
+            menu.Items.Add(new Forms.ToolStripSeparator());
+            Add(menu.Items, "Show all Pens", showAll);
+            Add(menu.Items, "Hide all Pens", hideAll);
+            var gesture = new Forms.ToolStripMenuItem("Desktop rectangle creation") { Checked = creationEnabled() };
+            gesture.Click += (_, _) => dispatcher.InvokeAsync(toggleCreation);
+            menu.Items.Add(gesture);
+            Add(menu.Items, "Exit PennCraft", exit);
+        };
         icon = new Forms.NotifyIcon
         {
-            Icon = SystemIcons.Application,
-            Text = "PennCraft",
-            ContextMenuStrip = menu,
-            Visible = true
+            Icon = SystemIcons.Application, Text = "PennCraft", ContextMenuStrip = menu, Visible = true
         };
-        icon.DoubleClick += (_, _) => dispatcher.InvokeAsync(show);
+        icon.DoubleClick += (_, _) => dispatcher.InvokeAsync(showAll);
     }
 
     public void Dispose()

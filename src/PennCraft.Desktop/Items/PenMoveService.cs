@@ -26,14 +26,15 @@ internal sealed class PenMoveService
     public string StorageDirectory { get; }
     internal string JournalPath { get; }
 
-    public PenMoveService(string desktopDirectory)
+    public PenMoveService(string desktopDirectory, string penId = "Default")
     {
+        if (!WorkspaceStore.IsValidId(penId)) throw new ArgumentException("Invalid Pen identity.", nameof(penId));
         desktop = PenMembership.NormalizePath(desktopDirectory)
             ?? throw new ArgumentException("An absolute desktop path is required.", nameof(desktopDirectory));
         root = Path.Combine(desktop, ".PennCraft");
         owner = Path.Combine(root, "owner.txt");
-        StorageDirectory = Path.Combine(root, "Default", "Items");
-        JournalPath = Path.Combine(root, "Default", "moves.json");
+        StorageDirectory = Path.Combine(root, penId, "Items");
+        JournalPath = Path.Combine(root, penId, "moves.json");
     }
 
     public bool IsManaged(string path) => IsChild(path, StorageDirectory);

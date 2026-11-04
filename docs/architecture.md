@@ -50,3 +50,9 @@ Windows adapters own native shell icons, launching and read-only desktop hit tes
 PenMoveService owns the desktop/storage boundary and startup reconciliation. NativeFileMove isolates native identity queries and same-volume no-overwrite rename. A private drag payload lets PennCraft own the journaled move; Explorer never receives a second file-move instruction. External/legacy references retain their earlier semantics.
 
 Move intent is flushed before rename. The destination identity is verified before membership changes, settings are flushed, then the intent is acknowledged. Recovery is idempotent and never replays a physical move. Ambiguous/corrupt records are retained and block physical moves. AtomicJsonFile supplies complete, flushed snapshot replacement for settings and the journal. One application instance owns the per-user settings lock; UI actions serialize worker operations and prevent exit in flight. See [storage and recovery](milestone-0.4.md).
+
+## Workspace and desktop creation
+
+WorkspaceController owns all Pen windows, a single tray icon, the transient CreationPreview and DesktopCreationGesture. WorkspaceStore indexes stable Pen IDs; each window keeps its own PenSettingsStore and PenMoveService. Default paths are retained for migration, and new IDs are validated before constructing paths.
+
+The observer runs on a dedicated message-pump thread and always calls the next input observer. DesktopIconSnapshot runs on a separate MTA thread. CreationGesturePolicy checks physical rectangles against icons and visible windows. No Explorer state is changed, and uncertain/stale geometry fails closed. CreationPreview writes no state; only its enabled creation action commits a new ID/settings pair. See [behavior and boundaries](milestone-0.5.md).

@@ -15,21 +15,26 @@ public partial class MainWindow : Window
 {
     private readonly DispatcherTimer shellTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private readonly DispatcherTimer saveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
-    private readonly PenSettingsStore store = new(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PennCraft", "pen.json"));
-    private readonly TrayCommands tray;
+    private readonly PenSettingsStore store;
+    private readonly string penId;
     private PenSettings settings;
     private DesktopSurface? surface;
     private bool exiting;
     private bool editing;
 
-    public MainWindow()
+    public MainWindow() : this(new PenSettingsStore(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PennCraft", "pen.json")), "Default")
     {
+    }
+
+    internal MainWindow(PenSettingsStore store, string penId)
+    {
+        this.store = store;
+        this.penId = penId;
         InitializeComponent();
         settings = store.Load();
         ApplySettings();
         InitializeItems();
-        tray = new TrayCommands(Dispatcher, ShowPen, HidePen, ResetPosition, ExitApplication);
         saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
         LocationChanged += (_, _) => ScheduleSave();
         SizeChanged += (_, _) => ScheduleSave();
@@ -53,9 +58,18 @@ public partial class MainWindow : Window
             shellTimer.Stop();
             saveTimer.Stop();
             SaveSettings();
-            tray.Dispose();
             surface?.Dispose();
         };
+    }
+
+    internal string PenTitle => settings.Title;
+    internal bool UserVisible => settings.IsVisible;
+    internal bool CanExit => !itemMovesBusy && !itemDragActive;
+
+    internal void PlaceAt(System.Windows.Rect pixels)
+    {
+        Windows.DesktopGeometry.Place(this, pixels);
+        SaveSettings();
     }
 
     private void ApplySettings()
@@ -102,7 +116,7 @@ public partial class MainWindow : Window
 
     private void ClosePen(object sender, RoutedEventArgs e) => HidePen();
 
-    private void HidePen()
+    internal void HidePen()
     {
         FinishEditing(commit: true);
         settings = settings with { IsVisible = false };
@@ -111,7 +125,7 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
-    private void ShowPen()
+    internal void ShowPen()
     {
         settings = settings with { IsVisible = true };
         Show();
@@ -119,7 +133,7 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
-    private void ResetPosition()
+    internal void ResetPosition()
     {
         var workArea = SystemParameters.WorkArea;
         Left = workArea.Left + 40;
@@ -129,7 +143,7 @@ public partial class MainWindow : Window
         ShowPen();
     }
 
-    private void ExitApplication()
+    internal void ExitApplication()
     {
         exiting = true;
         FinishEditing(commit: true);
