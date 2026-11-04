@@ -63,7 +63,8 @@ internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop
                 // Even cancellation can leave partial cross-volume results; reconcile actual locations.
                 var recovery = Recover();
                 return recovery ?? (exception is OperationCanceledException
-                    ? "Move cancelled." : "Windows could not complete the move. Check the source and destination.");
+                    ? "Windows cancelled the operation. Locations were reconciled; check both containers."
+                    : "Windows stopped the operation. Locations were reconciled; check the source and destination.");
             }
         }
     }

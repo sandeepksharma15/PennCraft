@@ -22,8 +22,8 @@ internal static class ShellFileMove
     internal static void Move(string source, string destination, nint owner)
     {
         object? operationObject = null;
-        object? sourceItem = null;
-        object? targetFolder = null;
+        IShellItem? sourceItem = null;
+        IShellItem? targetFolder = null;
         Marshal.ThrowExceptionForHR(OleInitialize(0));
         try
         {
@@ -62,7 +62,7 @@ internal static class ShellFileMove
         void ApplyPropertiesToItems(nint items);
         void RenameItem(nint item, [MarshalAs(UnmanagedType.LPWStr)] string name, nint sink);
         void RenameItems(nint items, [MarshalAs(UnmanagedType.LPWStr)] string name);
-        void MoveItem([MarshalAs(UnmanagedType.Interface)] object item, [MarshalAs(UnmanagedType.Interface)] object folder,
+        void MoveItem(IShellItem item, IShellItem folder,
             [MarshalAs(UnmanagedType.LPWStr)] string name, nint sink);
         void MoveItems(nint items, nint folder);
         void CopyItem(nint item, nint folder, nint name, nint sink);
@@ -74,9 +74,19 @@ internal static class ShellFileMove
         void GetAnyOperationsAborted([MarshalAs(UnmanagedType.Bool)] out bool aborted);
     }
 
+    [ComImport, Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IShellItem
+    {
+        void BindToHandler(nint bind, ref Guid handler, ref Guid id, out nint result);
+        void GetParent(out IShellItem parent);
+        void GetDisplayName(uint kind, out nint name);
+        void GetAttributes(uint mask, out uint attributes);
+        void Compare(IShellItem other, uint hint, out int order);
+    }
+
     [DllImport("ole32.dll")] private static extern int OleInitialize(nint reserved);
     [DllImport("ole32.dll")] private static extern void OleUninitialize();
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     private static extern int SHCreateItemFromParsingName(string path, nint bind, ref Guid id,
-        [MarshalAs(UnmanagedType.Interface)] out object item);
+        out IShellItem item);
 }

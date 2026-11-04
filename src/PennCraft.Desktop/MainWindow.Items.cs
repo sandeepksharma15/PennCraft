@@ -233,7 +233,8 @@ public partial class MainWindow
         pressedItem = null;
         itemDragOrigin = null;
         itemDragActive = true;
-        ItemStatus.Text = moves?.IsManaged(item.Path) == true
+        ItemStatus.Text = IsPortal ? "Drop into a Pen, another Portal or onto the desktop to move this item. Esc cancels."
+            : moves?.IsManaged(item.Path) == true
             ? "Drop into another Pen or onto the desktop to move this item. Esc cancels."
             : "Drop into another Pen to transfer this reference, or onto the desktop to remove it.";
         PenDragSession? session = null;
