@@ -64,7 +64,7 @@ public partial class MainWindow : Window
 
     internal string PenTitle => settings.Title;
     internal bool UserVisible => settings.IsVisible;
-    internal bool CanExit => !itemMovesBusy && !itemDragActive;
+    internal bool CanExit => !itemMovesBusy && !itemDragActive && !itemMenuBusy && !itemReconciliationBusy;
 
     internal void PlaceAt(System.Windows.Rect pixels)
     {
@@ -102,7 +102,7 @@ public partial class MainWindow : Window
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (itemMovesBusy || itemDragActive)
+        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy)
         {
             e.Cancel = true;
             exiting = false;
@@ -202,7 +202,9 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
-    private void OpenMenu(object sender, RoutedEventArgs e)
+    private void OpenMenu(object sender, RoutedEventArgs e) => ShowPenMenu((FrameworkElement)sender);
+
+    private void ShowPenMenu(FrameworkElement target)
     {
         var menu = new ContextMenu();
         var rename = new MenuItem { Header = "Rename Pen" };
@@ -234,7 +236,7 @@ public partial class MainWindow : Window
         var hide = new MenuItem { Header = "Hide Pen" };
         hide.Click += (_, _) => HidePen();
         menu.Items.Add(hide);
-        menu.PlacementTarget = (System.Windows.Controls.Button)sender;
+        menu.PlacementTarget = target;
         menu.IsOpen = true;
     }
 }

@@ -22,6 +22,7 @@ public partial class MainWindow
     private async void InitializeItems()
     {
         ItemGrid.ItemsSource = items;
+        itemRefreshTimer.Tick += RefreshWatchedItems;
         foreach (var path in settings.ItemPaths) AddItemView(path);
         UpdateEmptyHint();
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
@@ -51,6 +52,7 @@ public partial class MainWindow
                 }
             }
             if (recovery.Error is not null) ItemStatus.Text = recovery.Error;
+            await ReconcileItemsAsync();
         }
         finally { itemMovesBusy = false; }
     }
@@ -59,11 +61,14 @@ public partial class MainWindow
     {
         itemsDisposed = true;
         icons.Dispose();
+        itemRefreshTimer.Stop();
+        foreach (var watcher in itemWatchers) watcher.Dispose();
+        itemWatchers.Clear();
     }
 
     private void AddItemView(string path)
     {
-        var item = new PenItem(path);
+        var item = new PenItem(path) { IsSelected = string.Equals(path, selectedItemPath, StringComparison.OrdinalIgnoreCase) };
         items.Add(item);
         _ = LoadItemIconAsync(item);
     }
@@ -80,6 +85,12 @@ public partial class MainWindow
         foreach (var item in items.Where(item => !membership.Contains(item.Path)).ToArray()) items.Remove(item);
         var present = items.Select(item => item.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var path in settings.ItemPaths.Where(path => !present.Contains(path))) AddItemView(path);
+        var ordered = items.ToDictionary(item => item.Path, StringComparer.OrdinalIgnoreCase);
+        for (var index = 0; index < settings.ItemPaths.Length; index++)
+        {
+            var current = items.IndexOf(ordered[settings.ItemPaths[index]]);
+            if (current != index) items.Move(current, index);
+        }
         UpdateEmptyHint();
     }
 
@@ -91,7 +102,7 @@ public partial class MainWindow
         // The app owns journaled moves; Explorer must never also delete the drag source.
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (itemMovesBusy || moveSettingsBlocked || itemDragActive) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
         try
         {
             e.Effects = ItemDragPolicy.IncomingEffect(e.AllowedEffects,
@@ -104,7 +115,7 @@ public partial class MainWindow
     {
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (itemMovesBusy || moveSettingsBlocked || itemDragActive) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
         string[] paths;
         try
         {
@@ -166,7 +177,7 @@ public partial class MainWindow
 
     private async Task PersistItemChangesAsync(IEnumerable<Guid> ids)
     {
-        if (!SaveSettings())
+        if (!await CaptureItemTrackingAsync())
         {
             PauseMoves();
             return;
@@ -183,7 +194,8 @@ public partial class MainWindow
 
     private void ItemMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (itemMovesBusy || ((FrameworkElement)sender).DataContext is not PenItem item) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || ((FrameworkElement)sender).DataContext is not PenItem item) return;
+        SelectItem(item);
         pressedItem = item;
         itemDragOrigin = e.GetPosition(this);
         if (e.ClickCount == 2)
@@ -203,7 +215,7 @@ public partial class MainWindow
 
     private async void ItemMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (itemMovesBusy || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
             || itemDragOrigin is not { } origin || e.LeftButton != MouseButtonState.Pressed) return;
         var current = e.GetPosition(this);
         if (Math.Abs(current.X - origin.X) < SystemParameters.MinimumHorizontalDragDistance
@@ -222,17 +234,7 @@ public partial class MainWindow
                 return;
             }
             itemMovesBusy = true;
-            var outcome = await Task.Run(() => moves?.MoveOut(item.Path) ?? new MoveOutcome(item.Path, item.Path, null, null));
-            if (outcome.Error is not null)
-            {
-                ItemStatus.Text = outcome.Error;
-                return;
-            }
-            settings = settings with { ItemPaths = PenMembership.Remove(settings.ItemPaths, item.Path) };
-            RefreshItemViews();
-            await PersistItemChangesAsync(outcome.OperationId.HasValue ? [outcome.OperationId.Value] : []);
-            if (!moveSettingsBlocked)
-                ItemStatus.Text = outcome.Moved ? "Moved back to the desktop." : "Reference removed; its original item was not moved.";
+            await MoveItemToDesktopAsync(item);
         }
         catch (COMException)
         {
