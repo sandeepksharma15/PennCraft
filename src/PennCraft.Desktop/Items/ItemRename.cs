@@ -19,7 +19,7 @@ internal static class ItemRename
         return null;
     }
 
-    public static string? Rename(string path, string name)
+    public static string? Rename(string path, string name, string? expectedIdentity = null)
     {
         var invalid = ValidateName(name);
         if (invalid is not null) return invalid;
@@ -31,6 +31,8 @@ internal static class ItemRename
                 var destination = Path.Combine(parent, name);
                 if (string.Equals(path, destination, StringComparison.Ordinal)) return null;
                 var identity = NativeFileMove.Identity(path);
+                if (expectedIdentity is not null && expectedIdentity != identity)
+                    return "The item changed while its menu was open. Refresh the Pen and try again.";
                 if (Directory.EnumerateFileSystemEntries(parent).Any(candidate =>
                         !string.Equals(candidate, path, StringComparison.Ordinal)
                         && string.Equals(Path.GetFileName(candidate), name, StringComparison.OrdinalIgnoreCase)))

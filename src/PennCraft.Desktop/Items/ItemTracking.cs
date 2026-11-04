@@ -105,7 +105,7 @@ internal static class ItemTracking
         return new([.. items], complete);
     }
 
-    private static string? TryIdentity(string path)
+    public static string? TryIdentity(string path)
     {
         try { return NativeFileMove.Identity(path); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or Win32Exception

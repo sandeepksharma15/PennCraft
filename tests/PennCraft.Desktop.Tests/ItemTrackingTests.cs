@@ -174,6 +174,23 @@ public sealed class ItemTrackingTests
         });
     }
 
+    [Fact]
+    public void RenameRefusesAReplacementCreatedWhileTheMenuWasOpen()
+    {
+        WithDirectory(root =>
+        {
+            var source = Path.Combine(root, "Original.txt");
+            File.WriteAllText(source, "Original");
+            var identity = NativeFileMove.Identity(source);
+            File.Move(source, Path.Combine(root, "Preserved.txt"));
+            File.WriteAllText(source, "Replacement");
+            Assert.NotNull(ItemRename.Rename(source, "Renamed.txt", identity));
+            Assert.Equal("Replacement", File.ReadAllText(source));
+            Assert.Equal("Original", File.ReadAllText(Path.Combine(root, "Preserved.txt")));
+            Assert.False(File.Exists(Path.Combine(root, "Renamed.txt")));
+        });
+    }
+
     private static void WithDirectory(Action<string> test)
     {
         var root = Path.Combine(Path.GetTempPath(), "PennCraft-context-tests", Guid.NewGuid().ToString("N"));

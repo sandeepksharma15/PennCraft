@@ -24,7 +24,7 @@ Commands are paused while an item move or unresolved recovery is pending. If set
 
 ## Membership reconciliation
 
-Before invoking a native item command or renaming, PennCraft persists native file identities with membership. Non-recursive parent-folder watchers then reconcile rename, deletion and move-out notifications. A successful same-folder rename follows the original identity, refreshes the tile and saves its new path. An original identity confirmed absent from a completely readable parent folder is removed from membership. Unrelated replacements at the old path are not adopted.
+Before invoking a native item command or renaming, PennCraft persists native file identities with membership. Target identity is checked again after menu selection; a replacement at the same path is refused rather than operated on. Non-recursive parent-folder watchers then reconcile rename, deletion and move-out notifications. A successful same-folder rename follows the original identity, refreshes the tile in its existing grid position and saves its new path. An original identity confirmed absent from a completely readable parent folder is removed from membership. Unrelated replacements at the old path are not adopted.
 
 Startup performs the same reconciliation, including a rename/deletion completed after the last settings save. Older missing references with no recorded identity are retained. Inaccessible parents, incomplete metadata scans and ambiguous hard links are retained for later refresh; no filesystem object is moved/deleted by reconciliation. Files moved outside the original parent are removed from membership rather than searched for across drives.
 

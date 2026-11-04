@@ -64,6 +64,7 @@ public partial class MainWindow
         Activate();
         try
         {
+            var clickedIdentity = await Task.Run(() => ItemTracking.TryIdentity(item.Path));
             using var menu = new ShellContextMenu(item.Path, new WindowInteropHelper(this).Handle,
                 moves?.IsManaged(item.Path) == true);
             var choice = menu.Show(pixels);
@@ -76,6 +77,15 @@ public partial class MainWindow
             if (choice.Action == ItemMenuAction.RemoveReference)
             {
                 await RemoveReferenceAsync(item);
+                return;
+            }
+            if (clickedIdentity is null
+                || await Task.Run(() => ItemTracking.TryIdentity(item.Path)) != clickedIdentity
+                || settings.TrackedItems.Any(entry => string.Equals(entry.Path, item.Path, StringComparison.OrdinalIgnoreCase)
+                    && entry.Identity != clickedIdentity))
+            {
+                ItemStatus.Text = "The item changed or could not be identified reliably. Refreshing the Pen; try again.";
+                await ReconcileItemsAsync();
                 return;
             }
             if (choice.Action == ItemMenuAction.MoveToDesktop)
@@ -101,11 +111,13 @@ public partial class MainWindow
                 if (dialog.ShowDialog() == true)
                 {
                     var name = dialog.ItemName;
-                    var error = await Task.Run(() => ItemRename.Rename(item.Path, name));
+                    var error = await Task.Run(() => ItemRename.Rename(item.Path, name, clickedIdentity));
                     ItemStatus.Text = error ?? string.Empty;
                 }
             }
-            else menu.Invoke(choice.CommandId);
+            else if (await Task.Run(() => ItemTracking.TryIdentity(item.Path)) == clickedIdentity)
+                menu.Invoke(choice.CommandId);
+            else ItemStatus.Text = "The item changed before the command could run. Refreshing the Pen.";
             await ReconcileItemsAsync();
         }
         catch (COMException exception) when (exception.HResult == unchecked((int)0x800704C7))

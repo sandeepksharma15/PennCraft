@@ -85,6 +85,12 @@ public partial class MainWindow
         foreach (var item in items.Where(item => !membership.Contains(item.Path)).ToArray()) items.Remove(item);
         var present = items.Select(item => item.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var path in settings.ItemPaths.Where(path => !present.Contains(path))) AddItemView(path);
+        var ordered = items.ToDictionary(item => item.Path, StringComparer.OrdinalIgnoreCase);
+        for (var index = 0; index < settings.ItemPaths.Length; index++)
+        {
+            var current = items.IndexOf(ordered[settings.ItemPaths[index]]);
+            if (current != index) items.Move(current, index);
+        }
         UpdateEmptyHint();
     }
 
@@ -109,7 +115,7 @@ public partial class MainWindow
     {
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (itemMovesBusy || moveSettingsBlocked || itemDragActive) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
         string[] paths;
         try
         {
