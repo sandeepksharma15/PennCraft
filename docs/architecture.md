@@ -44,3 +44,9 @@ DesktopSurface isolates native HWND styles, shell rediscovery, visibility and bo
 PenMembership owns ordered, normalized, case-insensitive path references and never performs filesystem mutations. PenItem presents labels and frozen icons; the MainWindow item partial binds an ObservableCollection and orchestrates explicit actions. ItemPaths extends the existing JSON settings without a migration requirement.
 
 Windows adapters own native shell icons, launching and read-only desktop hit testing. Icons use a serial STA worker and release HICON handles after creating frozen bitmaps. Incoming drags are reference-only Copy/Link operations. Outgoing drags carry a private membership format; desktop release removes the reference locally without handing files to Explorer. See [semantics and acceptance](milestone-0.3.md).
+
+## Physical item moves
+
+PenMoveService owns the desktop/storage boundary and startup reconciliation. NativeFileMove isolates native identity queries and same-volume no-overwrite rename. A private drag payload lets PennCraft own the journaled move; Explorer never receives a second file-move instruction. External/legacy references retain their earlier semantics.
+
+Move intent is flushed before rename. The destination identity is verified before membership changes, settings are flushed, then the intent is acknowledged. Recovery is idempotent and never replays a physical move. Ambiguous/corrupt records are retained and block physical moves. AtomicJsonFile supplies complete, flushed snapshot replacement for settings and the journal. One application instance owns the per-user settings lock; UI actions serialize worker operations and prevent exit in flight. See [storage and recovery](milestone-0.4.md).

@@ -4,7 +4,7 @@ using PennCraft.Desktop.Windows;
 
 namespace PennCraft.Desktop.Items;
 
-/// <summary>Drag membership to the desktop without exposing file-move data to Explorer.</summary>
+/// <summary>Detect a desktop release without letting Explorer perform a second file operation.</summary>
 internal static class DesktopItemDrag
 {
     private const string MembershipFormat = "PennCraft.PenMembership";
@@ -18,7 +18,7 @@ internal static class DesktopItemDrag
             remove = ItemDragPolicy.ShouldRemove(e.EscapePressed, leftDown, DesktopDropTarget.IsUnderCursor());
             if (e.EscapePressed || !leftDown)
             {
-                // This is a membership edit handled locally, never an Explorer file operation.
+                // The caller owns the operation and its journal, rather than Explorer.
                 e.Action = DragAction.Cancel;
                 e.Handled = true;
             }

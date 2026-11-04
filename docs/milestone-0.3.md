@@ -1,3 +1,5 @@
+> Historical reference behavior: actual moves from the user desktop are introduced in [Milestone 0.4](milestone-0.4.md). Existing references retain the behavior described below.
+
 # Milestone 0.3 — desktop items
 
 ## Use

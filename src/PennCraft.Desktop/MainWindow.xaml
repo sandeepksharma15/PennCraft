@@ -128,7 +128,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-                    <TextBlock x:Name="EmptyHint" Text="Drag files and shortcuts here" Foreground="#BBD0E0"
+                    <TextBlock x:Name="EmptyHint" Text="Drag desktop items here to move them into the Pen" Foreground="#BBD0E0"
                                HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                     <TextBlock x:Name="ItemStatus" Grid.Row="1" Foreground="#BBD0E0" FontSize="11"
                                TextWrapping="Wrap" Margin="4,4,4,0" IsHitTestVisible="False"/>
