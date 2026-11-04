@@ -11,9 +11,9 @@ public partial class MainWindow
     private bool transferBusy;
     private bool transferRecoveryBlocked;
 
-    internal bool CanBeginTransfer(bool source) => !IsPortal && !transferBusy && !transferRecoveryBlocked
+    internal bool CanBeginTransfer(bool source) => !transferBusy && !transferRecoveryBlocked
         && !moveSettingsBlocked && !itemMovesBusy && !itemMenuBusy && !itemReconciliationBusy
-        && (source || !itemDragActive) && moves is { HasUnresolvedMoves: false };
+        && (source || !itemDragActive) && (IsPortal || moves is { HasUnresolvedMoves: false });
 
     internal PenSettings TransferSnapshot() => settings with { Left = Left, Top = Top, Width = Width, Height = Height };
 

@@ -68,3 +68,7 @@ TrackedItem extends settings with stable file identities. ItemTracking reconcile
 PenTransferCoordinator reserves the source and destination windows and routes only current in-process PenDragRegistry tokens. DesktopItemDrag retains desktop release semantics while allowing valid private Pen drops. MainWindow.Transfers merges committed membership into live window metadata and suspends watcher/settings races during a transfer.
 
 PenTransferService owns a single workspace write-ahead intent, validates Pen IDs and storage boundaries, preflights both stores, renames without overwrite/copy fallback, verifies identity, saves both memberships and acknowledges last. Startup reconciliation runs before windows/watchers. Physical moves are not replayed; reference intents are completed logically. Ambiguous/corrupt records fail closed without filesystem mutation. See [transaction and recovery](milestone-0.7.md).
+
+## Portal file operations
+
+PortalMoveService coordinates a durable transfers.json.portal record with Pen membership. ShellFileMove owns a dedicated STA and IFileOperation with the window as owner and unsuppressed Windows UI. The workspace coordinator reserves all containers during the operation because several Portals may display the same directory. Startup reconciles the Portal record before windows open; it never replays a physical move. See [recovery limits](milestone-0.9.md).

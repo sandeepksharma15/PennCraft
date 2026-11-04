@@ -29,7 +29,7 @@ internal sealed class ShellContextMenu : IDisposable
 
     internal int ShellCommandCount { get; private set; }
 
-    public ShellContextMenu(string path, nint owner, bool managed)
+    public ShellContextMenu(string path, nint owner, bool managed, bool includeMembership = true)
     {
         this.owner = owner;
         this.managed = managed;
@@ -54,7 +54,7 @@ internal sealed class ShellContextMenu : IDisposable
             Marshal.ThrowExceptionForHR(result);
             ShellCommandCount = result & 0xFFFF;
             Append(0x800, 0, null);
-            Append(0, MembershipId, managed ? "Move to Desktop" : "Remove from Pen");
+            if (includeMembership) Append(0, MembershipId, managed ? "Move to Desktop" : "Remove from Pen");
             Append(0, ExplorerId, "Show in File Explorer");
         }
         catch

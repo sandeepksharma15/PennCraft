@@ -21,3 +21,7 @@ Portal file operations, multi-item operations, copy transfers, Pen deletion, und
 ## Milestone 0.8
 
 Basic Folder Portals display live immediate folder contents, open items and retain the folder connection and window settings. File operations remain deferred. See [scope and manual checks](milestone-0.8.md).
+
+## Milestone 0.9
+
+Windows-managed single-item Portal moves and native item context menus are implemented. Milestone 0.8 was manually accepted; 0.9 requires fresh interactive acceptance. Multi-selection and copy modifiers remain deferred. See [usage and checks](milestone-0.9.md).

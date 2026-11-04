@@ -45,7 +45,6 @@ public partial class MainWindow
 
     private async Task ShowItemMenuAsync(PenItem item, Point pixels)
     {
-        if (IsPortal) { ShowPortalItemMenu(item); return; }
         if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked
             || moves?.HasUnresolvedMoves == true)
         {
@@ -57,7 +56,8 @@ public partial class MainWindow
         itemDragOrigin = null;
         if (!PenMembership.Exists(item.Path))
         {
-            ShowUnavailableMenu(item);
+            if (IsPortal) ItemStatus.Text = "This item is unavailable. Refreshing the folder.";
+            else ShowUnavailableMenu(item);
             return;
         }
         itemMenuBusy = true;
@@ -68,7 +68,7 @@ public partial class MainWindow
         {
             var clickedIdentity = await Task.Run(() => ItemTracking.TryIdentity(item.Path));
             using var menu = new ShellContextMenu(item.Path, new WindowInteropHelper(this).Handle,
-                moves?.IsManaged(item.Path) == true);
+                moves?.IsManaged(item.Path) == true, includeMembership: !IsPortal);
             var choice = menu.Show(pixels);
             if (choice.Action == ItemMenuAction.Cancel) return;
             if (choice.Action == ItemMenuAction.ShowInExplorer)
@@ -97,12 +97,12 @@ public partial class MainWindow
             }
 
             // Save identity before allowing Windows or our rename dialog to change the filesystem.
-            if (!await CaptureItemTrackingAsync())
+            if (!IsPortal && !await CaptureItemTrackingAsync())
             {
                 PauseMoves();
                 return;
             }
-            if (!settings.TrackedItems.Any(entry => string.Equals(entry.Path, item.Path, StringComparison.OrdinalIgnoreCase)))
+            if (!IsPortal && !settings.TrackedItems.Any(entry => string.Equals(entry.Path, item.Path, StringComparison.OrdinalIgnoreCase)))
             {
                 ItemStatus.Text = "Windows could not identify this item reliably. Use File Explorer for this command.";
                 return;
@@ -120,7 +120,7 @@ public partial class MainWindow
             else if (await Task.Run(() => ItemTracking.TryIdentity(item.Path)) == clickedIdentity)
                 menu.Invoke(choice.CommandId);
             else ItemStatus.Text = "The item changed before the command could run. Refreshing the Pen.";
-            await ReconcileItemsAsync();
+            if (!IsPortal) await ReconcileItemsAsync();
         }
         catch (COMException exception) when (exception.HResult == unchecked((int)0x800704C7))
         {
@@ -138,6 +138,7 @@ public partial class MainWindow
         {
             surface?.SetEditing(editing);
             itemMenuBusy = false;
+            if (IsPortal) await RefreshPortalAsync();
         }
     }
 
