@@ -23,6 +23,7 @@ public partial class MainWindow
     {
         ItemGrid.ItemsSource = items;
         itemRefreshTimer.Tick += RefreshWatchedItems;
+        if (IsPortal) { InitializePortal(); return; }
         foreach (var path in settings.ItemPaths) AddItemView(path);
         UpdateEmptyHint();
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
@@ -60,6 +61,7 @@ public partial class MainWindow
     private void DisposeItems()
     {
         itemsDisposed = true;
+        portalTimer.Stop();
         icons.Dispose();
         itemRefreshTimer.Stop();
         foreach (var watcher in itemWatchers) watcher.Dispose();
@@ -81,14 +83,14 @@ public partial class MainWindow
 
     private void RefreshItemViews()
     {
-        var membership = settings.ItemPaths.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var membership = DisplayPaths.ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var item in items.Where(item => !membership.Contains(item.Path)).ToArray()) items.Remove(item);
         var present = items.Select(item => item.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var path in settings.ItemPaths.Where(path => !present.Contains(path))) AddItemView(path);
+        foreach (var path in DisplayPaths.Where(path => !present.Contains(path))) AddItemView(path);
         var ordered = items.ToDictionary(item => item.Path, StringComparer.OrdinalIgnoreCase);
-        for (var index = 0; index < settings.ItemPaths.Length; index++)
+        for (var index = 0; index < DisplayPaths.Length; index++)
         {
-            var current = items.IndexOf(ordered[settings.ItemPaths[index]]);
+            var current = items.IndexOf(ordered[DisplayPaths[index]]);
             if (current != index) items.Move(current, index);
         }
         UpdateEmptyHint();
@@ -102,7 +104,7 @@ public partial class MainWindow
         // The app owns journaled moves; Explorer must never also delete the drag source.
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive) return;
+        if (IsPortal || itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive) return;
         try
         {
             if (PreviewInternalTransfer(e)) return;
@@ -116,7 +118,7 @@ public partial class MainWindow
     {
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
+        if (IsPortal || itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
         string[] paths;
         try
         {
@@ -217,7 +219,7 @@ public partial class MainWindow
 
     private async void ItemMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
+        if (IsPortal || itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
             || itemDragOrigin is not { } origin || e.LeftButton != MouseButtonState.Pressed) return;
         var current = e.GetPosition(this);
         if (Math.Abs(current.X - origin.X) < SystemParameters.MinimumHorizontalDragDistance

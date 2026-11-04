@@ -51,7 +51,7 @@ internal sealed class WorkspaceController : IDisposable
         if (disposed || !settings.CreationEnabled || pens.Any(pen => !pen.CanExit)) return;
         DismissPreview();
         if (DesktopGeometry.Obstacles().Any(region.IntersectsWith)) return;
-        var offered = new CreationPreview(region, bounds => CreatePen(bounds));
+        var offered = new CreationPreview(region, bounds => CreatePen(bounds), CreatePortal);
         preview = offered;
         offered.Closed += (_, _) => { if (ReferenceEquals(preview, offered)) preview = null; };
         offered.Show();
@@ -59,11 +59,17 @@ internal sealed class WorkspaceController : IDisposable
 
     private void DismissPreview() => preview?.Close();
 
-    private void CreatePen(Rect? region)
+    private void CreatePortal(Rect region)
+    {
+        var picker = new Microsoft.Win32.OpenFolderDialog { Title = "Choose a folder for the Portal", Multiselect = false };
+        if (picker.ShowDialog() == true) CreatePen(region, picker.FolderName);
+    }
+
+    private void CreatePen(Rect? region, string? portalFolder = null)
     {
         if (disposed) return;
         var id = Guid.NewGuid().ToString("N");
-        var initial = new PenSettings { Title = "New Pen" };
+        var initial = new PenSettings { Title = portalFolder is null ? "New Pen" : new DirectoryInfo(portalFolder).Name, PortalFolder = portalFolder };
         try
         {
             // New settings and index must both be durable before a persistent window is shown.

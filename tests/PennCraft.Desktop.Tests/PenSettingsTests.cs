@@ -13,6 +13,7 @@ public sealed class PenSettingsTests
         {
             var settings = new PenSettings
             {
+                PortalFolder = Path.Combine(Path.GetTempPath(), "Linked folder"),
                 Title = "Creative tools", Left = -450, Top = 220, Width = 420,
                 Height = 180, BackgroundOpacity = 0.55, IsVisible = false,
                 ItemPaths = [Path.Combine(Path.GetTempPath(), "Saved shortcut.lnk")]

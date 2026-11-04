@@ -229,8 +229,10 @@ public partial class MainWindow : Window
             opacity.Items.Add(item);
         }
         menu.Items.Add(opacity);
-        var storage = new MenuItem { Header = "Open Pen storage folder" };
-        storage.Click += (_, _) => ItemStatus.Text = moves is null
+        var storage = new MenuItem { Header = IsPortal ? "Open linked folder" : "Open Pen storage folder" };
+        storage.Click += (_, _) => ItemStatus.Text = IsPortal
+            ? ShellItemLauncher.Open(settings.PortalFolder!) ?? string.Empty
+            : moves is null
             ? "Windows could not locate the user desktop."
             : ShellItemLauncher.Open(moves.StorageDirectory) ?? string.Empty;
         menu.Items.Add(storage);

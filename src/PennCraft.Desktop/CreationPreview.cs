@@ -15,7 +15,7 @@ internal sealed class CreationPreview : Window
     internal MenuItem CreateItem { get; }
     internal MenuItem PortalItem { get; }
 
-    public CreationPreview(Rect region, Action<Rect> create)
+    public CreationPreview(Rect region, Action<Rect> create, Action<Rect>? createPortal = null)
     {
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
@@ -33,7 +33,7 @@ internal sealed class CreationPreview : Window
             CornerRadius = new CornerRadius(6)
         };
         CreateItem = new MenuItem { Header = "Create a Pen here" };
-        PortalItem = new MenuItem { Header = "Create a Folder Portal here", IsEnabled = false, ToolTip = "Coming later" };
+        PortalItem = new MenuItem { Header = "Create a Folder Portal here", IsEnabled = createPortal is not null };
         ToolTipService.SetShowOnDisabled(PortalItem, true);
         menu = new ContextMenu { PlacementTarget = this, Placement = PlacementMode.RelativePoint };
         menu.Items.Add(CreateItem);
@@ -43,6 +43,7 @@ internal sealed class CreationPreview : Window
             Close();
             create(region);
         };
+        PortalItem.Click += (_, _) => { Close(); createPortal?.Invoke(region); };
         menu.Closed += (_, _) => { if (!closed) Close(); };
         Loaded += (_, _) =>
         {
