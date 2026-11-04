@@ -63,6 +63,18 @@ public sealed class PortalMoveTests
     }
 
     [Fact]
+    public void InternalStorageRootCannotBeMovedFromDesktop()
+    {
+        using var fixture = new Fixture();
+        var root = Directory.CreateDirectory(Path.Combine(fixture.Desktop, ".PennCraft")).FullName;
+        File.WriteAllText(Path.Combine(root, "Keep.txt"), "metadata");
+        Assert.NotNull(fixture.Service.Move(null, fixture.PortalId, root, fixture.Folder,
+            NativeFileMove.Identity(root), (_, _) => Assert.Fail("Must not move internal storage")));
+        Assert.Equal("metadata", File.ReadAllText(Path.Combine(root, "Keep.txt")));
+        Assert.False(File.Exists(fixture.Service.JournalPath));
+    }
+
+    [Fact]
     public void CancelBeforeMoveRetainsSourceAndClearsIntent()
     {
         using var fixture = new Fixture();

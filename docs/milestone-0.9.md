@@ -36,3 +36,5 @@ Manual checklist:
 - Record OneDrive, network, Explorer restart and mixed-DPI behavior separately from automated results.
 
 References: [IFileOperation](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nn-shobjidl_core-ifileoperation), [operation flags](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nf-shobjidl_core-ifileoperation-setoperationflags).
+
+Portal file operations cannot move PennCraft's managed storage/settings trees or their parent folders, or use a Portal linked inside those internal trees. Normal stored-item transfers continue through their owning Pen.

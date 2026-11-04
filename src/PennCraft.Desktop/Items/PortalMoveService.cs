@@ -33,6 +33,8 @@ internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop
                 if (sourceId is not null && Read(sourceId) is { PortalFolder: null } sourceSettings
                     && !sourceSettings.ItemPaths.Contains(source, StringComparer.OrdinalIgnoreCase))
                     return "The source Pen no longer contains this item.";
+                if (ProtectedRoots.Any(root => Within(root, source)))
+                    return "PennCraft storage, settings and their parent folders cannot be moved through a Portal.";
                 var attributes = File.GetAttributes(source);
                 if ((attributes & (FileAttributes.ReparsePoint | FileAttributes.System)) != 0)
                     return "System items, links and junctions must be moved in File Explorer.";
@@ -120,11 +122,19 @@ internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop
         {
             var settings = Read(id);
             folder = settings.PortalFolder ?? new PenMoveService(desktop, id).StorageDirectory;
+            if (settings.PortalFolder is not null && ProtectedRoots.Any(root => Within(folder, root)))
+                throw new InvalidDataException("Portal file operations cannot target PennCraft internal storage.");
         }
         if (!string.Equals(Path.GetDirectoryName(path)?.TrimEnd(Path.DirectorySeparatorChar),
             folder.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Move outside its container.");
     }
+
+    private string[] ProtectedRoots => [Path.Combine(desktop, ".PennCraft"), Path.GetDirectoryName(workspace.TransferJournalPath)!];
+
+    private static bool Within(string path, string root) =>
+        string.Equals(path.TrimEnd(Path.DirectorySeparatorChar), root.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith(root.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
 
     private PenSettings Read(string id)
     {
