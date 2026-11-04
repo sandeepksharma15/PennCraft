@@ -4,7 +4,8 @@
         Title="PennCraft Pen" Width="600" Height="300" MinWidth="240" MinHeight="120"
         Left="100" Top="100" WindowStyle="None" ResizeMode="CanResize"
         AllowsTransparency="True" Background="Transparent"
-        ShowInTaskbar="False" ShowActivated="False" AllowDrop="False">
+        ShowInTaskbar="False" ShowActivated="False" AllowDrop="True"
+        PreviewDragOver="PreviewItemDragOver" PreviewDrop="DropItems">
     <Window.Resources>
         <Style x:Key="HeaderButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
@@ -69,6 +70,69 @@
                                 Click="ClosePen" ToolTip="Hide Pen" AutomationProperties.Name="Hide Pen"/>
                     </Grid>
                 </Border>
+                <Grid Grid.Row="1" Margin="8,0,8,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  CanContentScroll="False">
+                        <ItemsControl x:Name="ItemGrid">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="88" Height="86" Margin="2" Padding="4" CornerRadius="4"
+                                            ToolTip="{Binding ToolTip}"
+                                            PreviewMouseLeftButtonDown="ItemMouseDown"
+                                            PreviewMouseLeftButtonUp="ItemMouseUp"
+                                            PreviewMouseMove="ItemMouseMove"
+                                            AutomationProperties.Name="{Binding DisplayName}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#25FFFFFF"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <Grid Width="32" Height="32" Margin="0,1,0,6">
+                                                <TextBlock Text="?" Foreground="#BBD0E0" FontSize="24"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <Image Source="{Binding Icon}" Width="32" Height="32"
+                                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Grid>
+                                            <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="11"
+                                                       TextAlignment="Center" TextWrapping="Wrap"
+                                                       TextTrimming="CharacterEllipsis" MaxHeight="30"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <TextBlock x:Name="EmptyHint" Text="Drag files and shortcuts here" Foreground="#BBD0E0"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                    <TextBlock x:Name="ItemStatus" Grid.Row="1" Foreground="#BBD0E0" FontSize="11"
+                               TextWrapping="Wrap" Margin="4,4,4,0" IsHitTestVisible="False"/>
+                </Grid>
             </Grid>
         </Border>
         <!-- Explicit grips also work with a layered, transparent WPF window. -->

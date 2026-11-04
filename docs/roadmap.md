@@ -12,8 +12,8 @@
 | 7 — Personalization | Themes, animation, import/export |
 | 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Milestone 0.2
+## Milestone 0.3
 
-Implemented the single Pen foundation: title editing, eight-direction resize, background opacity, hover controls, hide/show through the tray, and atomic JSON persistence. See [usage and manual checklist](milestone-0.2.md).
+Implemented reference-based desktop item integration on the Pen foundation: native icons, a wrapping grid, double-click opening, desktop drag-out membership removal and durable item paths. Original desktop icons remain visible. See [usage and manual checklist](milestone-0.3.md).
 
-The independent HWND now maintains desktop-level visibility without a foreground-focus gate. Interactive acceptance of Win+D, Explorer coexistence and display configurations remains pending; CI establishes build/test results only. Icon management and portals remain future work.
+Interactive Windows shell acceptance remains pending. Folder portals, physical file organization, icon hiding, automatic path tracking and multiple Pens remain future work.

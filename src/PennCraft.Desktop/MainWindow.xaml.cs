@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         settings = store.Load();
         ApplySettings();
+        InitializeItems();
         tray = new TrayCommands(Dispatcher, ShowPen, HidePen, ResetPosition, ExitApplication);
         saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
         LocationChanged += (_, _) => ScheduleSave();
@@ -48,6 +49,7 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         Closed += (_, _) =>
         {
+            DisposeItems();
             shellTimer.Stop();
             saveTimer.Stop();
             SaveSettings();
