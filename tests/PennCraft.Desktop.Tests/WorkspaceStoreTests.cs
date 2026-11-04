@@ -121,8 +121,8 @@ public sealed class WorkspaceStoreTests
             var results = await Task.WhenAll(
                 Task.Run(() => first.MoveInto(source), TestContext.Current.CancellationToken),
                 Task.Run(() => second.MoveInto(source), TestContext.Current.CancellationToken));
-            var completed = Assert.Single(results.Where(result => result.Moved));
-            Assert.NotNull(Assert.Single(results.Where(result => !result.Moved)).Error);
+            var completed = Assert.Single(results, result => result.Moved);
+            Assert.NotNull(Assert.Single(results, result => !result.Moved).Error);
             Assert.Equal("Keep", File.ReadAllText(completed.Destination));
             Assert.False(File.Exists(source));
             Assert.Equal(1, MoveJournalFile.Read(first.JournalPath).Length + MoveJournalFile.Read(second.JournalPath).Length);
