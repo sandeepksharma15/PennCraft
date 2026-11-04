@@ -64,7 +64,7 @@ public partial class MainWindow : Window
 
     internal string PenTitle => settings.Title;
     internal bool UserVisible => settings.IsVisible;
-    internal bool CanExit => !itemMovesBusy && !itemDragActive && !itemMenuBusy && !itemReconciliationBusy;
+    internal bool CanExit => !itemMovesBusy && !itemDragActive && !itemMenuBusy && !itemReconciliationBusy && !transferBusy;
 
     internal void PlaceAt(System.Windows.Rect pixels)
     {
@@ -96,13 +96,14 @@ public partial class MainWindow : Window
 
     private bool SaveSettings()
     {
+        if (transferBusy) return false;
         settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
         return store.Save(settings);
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy)
+        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy)
         {
             e.Cancel = true;
             exiting = false;

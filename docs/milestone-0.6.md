@@ -1,3 +1,5 @@
+> Direct transfers between Pens are introduced in [Milestone 0.7](milestone-0.7.md). The context menu and reconciliation behavior below remains applicable.
+
 # Milestone 0.6 — item context menus
 
 ## Use

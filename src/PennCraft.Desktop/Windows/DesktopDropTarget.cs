@@ -11,8 +11,7 @@ internal static class DesktopDropTarget
 
     public static bool IsUnderCursor()
     {
-        if (!GetCursorPos(out var point)) return false;
-        var root = GetAncestor(WindowFromPoint(point), 2); // GA_ROOT, physical screen coordinates
+        var root = RootUnderCursor(); // GA_ROOT, physical screen coordinates
         if (root == 0) return false;
         Native.GetWindowThreadProcessId(Native.GetShellWindow(), out var shellProcess);
         Native.GetWindowThreadProcessId(root, out var targetProcess);
@@ -20,6 +19,9 @@ internal static class DesktopDropTarget
         GetClassName(root, name, name.Capacity);
         return IsDesktop(shellProcess, targetProcess, name.ToString());
     }
+
+    public static nint RootUnderCursor() => GetCursorPos(out var point)
+        ? GetAncestor(WindowFromPoint(point), 2) : 0;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Point

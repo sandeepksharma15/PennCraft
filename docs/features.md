@@ -1,6 +1,6 @@
 # Features
 
-Milestone 0.6 adds native item context menus, Move to Desktop/Remove from Pen, Explorer selection and rename/delete membership updates. See [usage and verification](milestone-0.6.md).
+Milestone 0.7 adds direct transfers of stored items and external references between Pens, with no-overwrite conflict checks and two-Pen recovery. See [usage and verification](milestone-0.7.md).
 
 The broader features below remain **planned**.
 
