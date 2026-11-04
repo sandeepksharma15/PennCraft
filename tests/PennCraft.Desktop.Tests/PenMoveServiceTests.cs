@@ -249,6 +249,54 @@ public sealed class PenMoveServiceTests
         });
     }
 
+    [Fact]
+    public void FailedSettingsSaveRetainsIntentAndRecoversTheCompletedRename()
+    {
+        WithDesktop((desktop, service) =>
+        {
+            var source = Path.Combine(desktop, "Settings.txt");
+            File.WriteAllText(source, "Keep");
+            var settingsPath = Path.Combine(Path.GetDirectoryName(desktop)!, "pen.json");
+            var store = new PenSettingsStore(settingsPath);
+            Assert.True(store.Save(new PenSettings { ItemPaths = [source] }));
+            var into = service.MoveInto(source);
+            Assert.True(into.Moved, into.Error);
+            using (var locked = new FileStream(settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                Assert.False(store.Save(new PenSettings { ItemPaths = [into.Destination] }));
+            Assert.Single(MoveJournalFile.Read(service.JournalPath));
+            var restarted = new PenMoveService(desktop);
+            var recovery = restarted.Recover(store.Load().ItemPaths);
+            Assert.Null(recovery.Error);
+            Assert.Equal(new[] { into.Destination }, recovery.ItemPaths);
+            Assert.True(store.Save(store.Load() with { ItemPaths = recovery.ItemPaths }));
+            Assert.Null(restarted.Acknowledge(recovery.ResolvedIds));
+            Assert.Empty(MoveJournalFile.Read(service.JournalPath));
+            Assert.Equal("Keep", File.ReadAllText(into.Destination));
+        });
+    }
+
+    [Fact]
+    public void FailedJournalAcknowledgementRetainsRecoverableIntent()
+    {
+        WithDesktop((desktop, service) =>
+        {
+            var source = Path.Combine(desktop, "Ack.txt");
+            File.WriteAllText(source, "Keep");
+            var into = service.MoveInto(source);
+            Assert.True(into.Moved, into.Error);
+            using (var locked = new FileStream(service.JournalPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                Assert.NotNull(service.Acknowledge([into.OperationId!.Value]));
+            Assert.Single(MoveJournalFile.Read(service.JournalPath));
+            var restarted = new PenMoveService(desktop);
+            var recovery = restarted.Recover([into.Destination]);
+            Assert.Null(recovery.Error);
+            Assert.Equal(new[] { into.Destination }, recovery.ItemPaths);
+            Assert.Null(restarted.Acknowledge(recovery.ResolvedIds));
+            Assert.Empty(MoveJournalFile.Read(service.JournalPath));
+            Assert.Equal("Keep", File.ReadAllText(into.Destination));
+        });
+    }
+
     private static void WithDesktop(Action<string, PenMoveService> test)
     {
         var root = Path.Combine(Path.GetTempPath(), "PennCraft-move-tests", Guid.NewGuid().ToString("N"));

@@ -213,6 +213,6 @@ internal sealed class PenMoveService
             throw new InvalidDataException("Storage cannot be redirected through a link.");
     }
 
-    private static bool IsStorageError(Exception exception) => exception is IOException or UnauthorizedAccessException
+    private static bool IsStorageError(Exception exception) => exception is IOException or InvalidDataException or UnauthorizedAccessException
         or Win32Exception or JsonException or ArgumentException or NotSupportedException;
 }
