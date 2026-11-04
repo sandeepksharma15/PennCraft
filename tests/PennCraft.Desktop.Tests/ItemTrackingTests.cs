@@ -191,6 +191,17 @@ public sealed class ItemTrackingTests
         });
     }
 
+    [Fact]
+    public void WatchersIgnoreUnrelatedFilesButFollowTheOriginalRenameName()
+    {
+        var members = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { @"C:\Items\Original.txt" };
+        Assert.True(ItemWatchPolicy.IsRelevant(members, @"C:\Items\ORIGINAL.txt"));
+        Assert.True(ItemWatchPolicy.IsRelevant(members, @"C:\Items\Renamed.txt", @"C:\Items\Original.txt"));
+        Assert.False(ItemWatchPolicy.IsRelevant(members, @"C:\Items\Unrelated.txt"));
+        Assert.False(ItemWatchPolicy.IsRelevant(members, @"C:\Items\pen.json"));
+        Assert.False(ItemWatchPolicy.IsRelevant(new HashSet<string>(), @"C:\Items\Original.txt"));
+    }
+
     private static void WithDirectory(Action<string> test)
     {
         var root = Path.Combine(Path.GetTempPath(), "PennCraft-context-tests", Guid.NewGuid().ToString("N"));

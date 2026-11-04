@@ -14,6 +14,7 @@ namespace PennCraft.Desktop;
 public partial class MainWindow
 {
     private readonly List<FileSystemWatcher> itemWatchers = [];
+    private HashSet<string> watchedMembers = new(StringComparer.OrdinalIgnoreCase);
     private readonly DispatcherTimer itemRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(450) };
     private bool itemMenuBusy;
     private bool itemReconciliationBusy;
@@ -222,22 +223,39 @@ public partial class MainWindow
 
     private void RestartItemWatchers()
     {
-        foreach (var watcher in itemWatchers) watcher.Dispose();
-        itemWatchers.Clear();
-        foreach (var parent in settings.ItemPaths.Select(Path.GetDirectoryName)
-                     .Where(parent => parent is not null).Distinct(StringComparer.OrdinalIgnoreCase))
+        Volatile.Write(ref watchedMembers, settings.ItemPaths.ToHashSet(StringComparer.OrdinalIgnoreCase));
+        var parents = settings.ItemPaths.Select(Path.GetDirectoryName).OfType<string>()
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var watcher in itemWatchers.ToArray())
         {
+            if (parents.Contains(watcher.Path) && watcher.EnableRaisingEvents) continue;
+            watcher.Dispose();
+            itemWatchers.Remove(watcher);
+        }
+        foreach (var parent in parents)
+        {
+            if (itemWatchers.Any(watcher => string.Equals(watcher.Path, parent, StringComparison.OrdinalIgnoreCase))) continue;
             try
             {
                 if (!Directory.Exists(parent)) continue;
-                var watcher = new FileSystemWatcher(parent!)
+                var watcher = new FileSystemWatcher(parent)
                 {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName,
                     IncludeSubdirectories = false
                 };
-                watcher.Renamed += (_, _) => QueueItemRefresh();
-                watcher.Deleted += (_, _) => QueueItemRefresh();
-                watcher.Created += (_, _) => QueueItemRefresh();
+                watcher.Renamed += (_, e) =>
+                {
+                    if (ItemWatchPolicy.IsRelevant(Volatile.Read(ref watchedMembers), e.FullPath, e.OldFullPath))
+                        QueueItemRefresh();
+                };
+                watcher.Deleted += (_, e) =>
+                {
+                    if (ItemWatchPolicy.IsRelevant(Volatile.Read(ref watchedMembers), e.FullPath)) QueueItemRefresh();
+                };
+                watcher.Created += (_, e) =>
+                {
+                    if (ItemWatchPolicy.IsRelevant(Volatile.Read(ref watchedMembers), e.FullPath)) QueueItemRefresh();
+                };
                 watcher.Error += (_, _) => QueueItemRefresh();
                 watcher.EnableRaisingEvents = true;
                 itemWatchers.Add(watcher);
