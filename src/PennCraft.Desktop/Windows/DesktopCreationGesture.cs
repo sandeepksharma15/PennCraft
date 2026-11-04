@@ -81,8 +81,10 @@ internal sealed class DesktopCreationGesture : IDisposable
 
     private nint Observe(int code, nint message, nint data)
     {
-        if (code >= 0 && !disposed)
+        try
         {
+            if (code >= 0 && !disposed)
+            {
             var msg = unchecked((int)message);
             var mouse = Marshal.PtrToStructure<MouseData>(data);
             var moved = mouse.Point.X != lastPoint.X || mouse.Point.Y != lastPoint.Y;
@@ -108,6 +110,11 @@ internal sealed class DesktopCreationGesture : IDisposable
             }
             else if (message is 0x0204 or 0x0207 or 0x020B or 0x020A)
                 drawing = null;
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            drawing = null;
         }
         return CallNextHookEx(hook, code, message, data);
     }
@@ -152,7 +159,8 @@ internal sealed class DesktopCreationGesture : IDisposable
         disposed = true;
         enabled = false;
         Interlocked.Increment(ref serial);
-        hookDispatcher?.BeginInvokeShutdown(DispatcherPriority.Send);
+        if (hookDispatcher is { HasShutdownStarted: false } dispatcher)
+            dispatcher.BeginInvokeShutdown(DispatcherPriority.Send);
     }
 
     private sealed record Candidate(ScreenPoint Start, ScreenPoint End, DesktopIconSnapshot Snapshot, long Serial);

@@ -5,6 +5,9 @@ namespace PennCraft.Desktop;
 
 public partial class App : Application
 {
+    // Configure the shared process before WPF or the notification-area component creates an HWND.
+    static App() => System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.PerMonitorV2);
+
     private FileStream? instanceLock;
     private WorkspaceController? workspace;
 

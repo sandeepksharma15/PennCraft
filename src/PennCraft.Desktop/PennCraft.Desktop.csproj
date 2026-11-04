@@ -11,8 +11,6 @@
     <RootNamespace>PennCraft.Desktop</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="UIAutomationClient" />
-    <Reference Include="UIAutomationTypes" />
     <Using Include="System" />
     <Using Include="System.Collections.Generic" />
     <Using Include="System.Linq" />

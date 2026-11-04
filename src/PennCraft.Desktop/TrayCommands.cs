@@ -17,7 +17,7 @@ internal sealed class TrayCommands : IDisposable
     {
         void Add(Forms.ToolStripItemCollection target, string title, Action action) =>
             target.Add(title, null, (_, _) => dispatcher.InvokeAsync(action));
-        menu.Opening += (_, _) =>
+        menu.Opening += (_, e) =>
         {
             foreach (Forms.ToolStripItem item in menu.Items.Cast<Forms.ToolStripItem>().ToArray()) item.Dispose();
             menu.Items.Clear();
@@ -37,6 +37,7 @@ internal sealed class TrayCommands : IDisposable
             gesture.Click += (_, _) => dispatcher.InvokeAsync(toggleCreation);
             menu.Items.Add(gesture);
             Add(menu.Items, "Exit PennCraft", exit);
+            e.Cancel = false;
         };
         icon = new Forms.NotifyIcon
         {

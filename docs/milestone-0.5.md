@@ -27,7 +27,7 @@ A dedicated input-observer thread installs WH_MOUSE_LL and always returns CallNe
 
 Desktop discovery currently expects Explorer's Progman/WorkerW → SHELLDLL_DefView → SysListView32 layout and an automation provider exposing all visible icons. Other shell layouts, wallpaper utilities, hidden-icon states, remote sessions or provider failures may suppress the gesture. The tray creation command remains available. Windows can silently remove a slow input observer; restarting PennCraft reinstalls it. The tray toggle disables offers and automation polling until re-enabled; exit uninstalls the observer.
 
-Coordinates are validated in physical pixels; the app declares per-monitor V2 awareness and places the preview/new window using native physical bounds. Mixed DPI, crossing monitors, virtual desktops, Explorer restart and display changes still require interactive acceptance. The popup may take keyboard focus after the explicit creation gesture. Temporary popups and unknown overlapping windows conservatively suppress creation.
+Coordinates are validated in physical pixels; the app configures per-monitor V2 awareness before WPF starts and places the preview/new window using native physical bounds. Mixed DPI, crossing monitors, virtual desktops, Explorer restart and display changes still require interactive acceptance. The popup may take keyboard focus after the explicit creation gesture. Temporary popups and unknown overlapping windows conservatively suppress creation.
 
 Existing item move/recovery limits remain documented in [Milestone 0.4](milestone-0.4.md). Close older PennCraft versions before upgrading. Do not run versions that ignore the application lock concurrently.
 
