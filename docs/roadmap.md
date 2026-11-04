@@ -12,8 +12,8 @@
 | 7 — Personalization | Themes, animation, import/export |
 | 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Milestone 0.6
+## Milestone 0.7
 
-Implemented single-item classic Windows context menus and storage-aware Pen commands, with persisted identity reconciliation for rename/delete and parent-folder notifications. The user manually accepted 0.5; fresh 0.6 shell-handler and file-operation acceptance remains pending. See [usage and manual checklist](milestone-0.6.md).
+Implemented direct single-item transfers between Pens with physical stored-item moves, reference-only membership transfers, opaque drag tokens and a workspace-level recovery journal. The user manually accepted 0.6; fresh 0.7 interactive acceptance remains pending. See [usage and manual checklist](milestone-0.7.md).
 
-Folder portals, multi-item operations, direct transfers between Pens, Pen deletion and broader shell/provider validation remain future work.
+Folder portals, multi-item operations, copy transfers, Pen deletion, undo UI and broader shell/provider validation remain future work.

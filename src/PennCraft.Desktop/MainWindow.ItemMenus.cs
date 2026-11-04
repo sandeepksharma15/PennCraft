@@ -45,7 +45,7 @@ public partial class MainWindow
 
     private async Task ShowItemMenuAsync(PenItem item, Point pixels)
     {
-        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked
+        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked
             || moves?.HasUnresolvedMoves == true)
         {
             ItemStatus.Text = "Finish or recover the pending item operation before using item commands.";
@@ -198,7 +198,7 @@ public partial class MainWindow
 
     private async Task ReconcileItemsAsync()
     {
-        if (itemsDisposed || itemReconciliationBusy || moves?.HasUnresolvedMoves == true) return;
+        if (itemsDisposed || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moves?.HasUnresolvedMoves == true) return;
         itemReconciliationBusy = true;
         try
         {
@@ -282,7 +282,7 @@ public partial class MainWindow
     private async void RefreshWatchedItems(object? sender, EventArgs e)
     {
         itemRefreshTimer.Stop();
-        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy)
+        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy)
         {
             itemRefreshTimer.Start();
             return;
@@ -292,7 +292,7 @@ public partial class MainWindow
 
     private void PenBackgroundRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (TitleEditor.IsMouseOver || itemMovesBusy || itemMenuBusy) return;
+        if (TitleEditor.IsMouseOver || itemMovesBusy || itemMenuBusy || transferBusy) return;
         e.Handled = true;
         SelectItem(null);
         ShowPenMenu(this);

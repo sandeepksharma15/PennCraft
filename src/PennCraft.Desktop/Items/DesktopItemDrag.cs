@@ -4,29 +4,40 @@ using PennCraft.Desktop.Windows;
 
 namespace PennCraft.Desktop.Items;
 
-/// <summary>Detect a desktop release without letting Explorer perform a second file operation.</summary>
+internal enum PenDragResult { Cancelled, Desktop, Pen }
+
+/// <summary>Private-token Pen drops plus desktop release; never an Explorer file payload.</summary>
 internal static class DesktopItemDrag
 {
-    private const string MembershipFormat = "PennCraft.PenMembership";
-
-    public static bool Run(UIElement source, string path)
+    internal static DataObject CreateData(PenDragSession session)
     {
-        var remove = false;
+        var data = new DataObject();
+        data.SetData(PenDragRegistry.Format, session.Token, autoConvert: false);
+        return data;
+    }
+
+    public static PenDragResult Run(UIElement source, PenDragSession session, Func<bool> canDropOnPen)
+    {
+        var desktop = false;
         void Continue(object sender, QueryContinueDragEventArgs e)
         {
             var leftDown = (e.KeyStates & DragDropKeyStates.LeftMouseButton) != 0;
-            remove = ItemDragPolicy.ShouldRemove(e.EscapePressed, leftDown, DesktopDropTarget.IsUnderCursor());
-            if (e.EscapePressed || !leftDown)
+            desktop = ItemDragPolicy.ShouldRemove(e.EscapePressed, leftDown, DesktopDropTarget.IsUnderCursor());
+            if (e.EscapePressed || desktop)
             {
-                // The caller owns the operation and its journal, rather than Explorer.
                 e.Action = DragAction.Cancel;
+                e.Handled = true;
+            }
+            else if (!leftDown)
+            {
+                e.Action = DragAction.Drop;
                 e.Handled = true;
             }
         }
         void Feedback(object sender, GiveFeedbackEventArgs e)
         {
             e.UseDefaultCursors = false;
-            Mouse.SetCursor(DesktopDropTarget.IsUnderCursor() ? Cursors.Arrow : Cursors.No);
+            Mouse.SetCursor(DesktopDropTarget.IsUnderCursor() || canDropOnPen() ? Cursors.Arrow : Cursors.No);
             e.Handled = true;
         }
 
@@ -34,10 +45,8 @@ internal static class DesktopItemDrag
         source.GiveFeedback += Feedback;
         try
         {
-            var data = new DataObject();
-            data.SetData(MembershipFormat, path, autoConvert: false);
-            DragDrop.DoDragDrop(source, data, DragDropEffects.Link);
-            return remove;
+            DragDrop.DoDragDrop(source, CreateData(session), DragDropEffects.Move | DragDropEffects.Link);
+            return session.Accepted ? PenDragResult.Pen : desktop ? PenDragResult.Desktop : PenDragResult.Cancelled;
         }
         finally
         {

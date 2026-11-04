@@ -102,9 +102,10 @@ public partial class MainWindow
         // The app owns journaled moves; Explorer must never also delete the drag source.
         e.Effects = DragDropEffects.None;
         e.Handled = true;
-        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive) return;
         try
         {
+            if (PreviewInternalTransfer(e)) return;
             e.Effects = ItemDragPolicy.IncomingEffect(e.AllowedEffects,
                 e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false));
         }
@@ -119,6 +120,7 @@ public partial class MainWindow
         string[] paths;
         try
         {
+            if (await DropInternalTransferAsync(e)) return;
             if (ItemDragPolicy.IncomingEffect(e.AllowedEffects,
                     e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false)) == DragDropEffects.None
                 || e.Data.GetData(DataFormats.FileDrop, autoConvert: false) is not string[] dropped) return;
@@ -194,7 +196,7 @@ public partial class MainWindow
 
     private void ItemMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || ((FrameworkElement)sender).DataContext is not PenItem item) return;
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || ((FrameworkElement)sender).DataContext is not PenItem item) return;
         SelectItem(item);
         pressedItem = item;
         itemDragOrigin = e.GetPosition(this);
@@ -215,7 +217,7 @@ public partial class MainWindow
 
     private async void ItemMouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
+        if (itemMovesBusy || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked || itemDragActive || pressedItem is not { } item
             || itemDragOrigin is not { } origin || e.LeftButton != MouseButtonState.Pressed) return;
         var current = e.GetPosition(this);
         if (Math.Abs(current.X - origin.X) < SystemParameters.MinimumHorizontalDragDistance
@@ -224,11 +226,24 @@ public partial class MainWindow
         itemDragOrigin = null;
         itemDragActive = true;
         ItemStatus.Text = moves?.IsManaged(item.Path) == true
-            ? "Drop onto exposed desktop space to move this item back. Esc cancels."
-            : "Drop onto exposed desktop space to remove this reference. Esc cancels.";
+            ? "Drop into another Pen or onto the desktop to move this item. Esc cancels."
+            : "Drop into another Pen to transfer this reference, or onto the desktop to remove it.";
+        PenDragSession? session = null;
         try
         {
-            if (!DesktopItemDrag.Run((UIElement)sender, item.Path))
+            var identity = await Task.Run(() => ItemTracking.TryIdentity(item.Path));
+            var recorded = settings.TrackedItems.FirstOrDefault(entry =>
+                string.Equals(entry.Path, item.Path, StringComparison.OrdinalIgnoreCase))?.Identity;
+            if (Mouse.LeftButton != MouseButtonState.Pressed || recorded is not null && recorded != identity)
+            {
+                ItemStatus.Text = "Item kept in the Pen; refresh if its source changed.";
+                ScheduleItemRefresh();
+                return;
+            }
+            session = Transfers?.Begin(penId, item.Path, identity) ?? new PenDragSession(penId, item.Path, identity);
+            var result = DesktopItemDrag.Run((UIElement)sender, session, () => Transfers?.CanDropUnderCursor(session) == true);
+            if (result == PenDragResult.Pen) return;
+            if (result != PenDragResult.Desktop)
             {
                 ItemStatus.Text = "Item kept in the Pen.";
                 return;
@@ -236,12 +251,13 @@ public partial class MainWindow
             itemMovesBusy = true;
             await MoveItemToDesktopAsync(item);
         }
-        catch (COMException)
+        catch (Exception exception) when (exception is COMException or InvalidOperationException)
         {
             ItemStatus.Text = "Windows could not start the drag. The item has been kept in the Pen.";
         }
         finally
         {
+            if (session is not null) Transfers?.End(session);
             itemMovesBusy = false;
             itemDragActive = false;
         }

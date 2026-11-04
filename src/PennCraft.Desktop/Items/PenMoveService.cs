@@ -163,6 +163,22 @@ internal sealed class PenMoveService
         }
     }
 
+    internal string? PrepareTransferStorage(bool create)
+    {
+        if (HasUnresolvedMoves) return "This Pen has an unresolved move.";
+        try
+        {
+            if (create) EnsureStorage();
+            else ValidateStorage();
+            if (MoveJournalFile.Read(JournalPath).Length != 0) return "This Pen has a pending move journal.";
+            return null;
+        }
+        catch (Exception exception) when (IsStorageError(exception))
+        {
+            return "Pen storage could not be verified. Check ownership, links and permissions.";
+        }
+    }
+
     public void BlockUntilRestart() => blockedReason = "Settings could not be saved. Further moves are paused until restart and recovery.";
 
     internal static string[] Apply(IEnumerable<string> paths, MoveEntry entry) => entry.IntoPen

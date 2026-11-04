@@ -12,6 +12,7 @@ internal sealed class WorkspaceController : IDisposable
     private readonly WorkspaceStore store;
     private readonly List<MainWindow> pens = [];
     private readonly TrayCommands tray;
+    private readonly PenTransferCoordinator transfers;
     private readonly DesktopCreationGesture gesture;
     private WorkspaceSettings settings;
     private CreationPreview? preview;
@@ -22,6 +23,9 @@ internal sealed class WorkspaceController : IDisposable
         this.app = app;
         store = new WorkspaceStore(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PennCraft"));
         settings = store.Load();
+        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        transfers = new PenTransferCoordinator(store, desktop, () => pens);
+        transfers.Recover();
         foreach (var id in settings.PenIds) OpenPen(id);
         gesture = new DesktopCreationGesture(app.Dispatcher, OfferCreation, DismissPreview)
         {
@@ -35,7 +39,8 @@ internal sealed class WorkspaceController : IDisposable
 
     private MainWindow OpenPen(string id)
     {
-        var pen = new MainWindow(new PenSettingsStore(store.SettingsPath(id)), id);
+        var pen = new MainWindow(new PenSettingsStore(store.SettingsPath(id)), id) { Transfers = transfers };
+        if (transfers.BlockedReason is { } error) pen.BlockTransferRecovery(error);
         pens.Add(pen);
         pen.Show();
         return pen;

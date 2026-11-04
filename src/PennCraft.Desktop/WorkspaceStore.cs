@@ -8,6 +8,7 @@ internal sealed record WorkspaceSettings(int Version, string[] PenIds, bool Crea
 
 internal sealed class WorkspaceStore(string directory)
 {
+    internal string TransferJournalPath => Path.Combine(directory, "transfers.json");
     private string IndexPath => Path.Combine(directory, "workspace.json");
 
     internal static bool IsValidId(string? id) => id == "Default"
