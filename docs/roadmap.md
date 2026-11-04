@@ -12,8 +12,8 @@
 | 7 — Personalization | Themes, animation, import/export |
 | 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Milestone 0.4
+## Milestone 0.5
 
-Implemented actual same-volume moves between the user desktop and dedicated Pen storage, with conflict refusal, flushed intent/settings snapshots and identity-based recovery. Milestone 0.3 was manually accepted by the user; 0.4 requires fresh interactive validation. See [usage and manual checklist](milestone-0.4.md).
+Implemented desktop rectangle creation, temporary preview/menu and multiple persistent Pens with independent settings, storage and journals. Milestone 0.4 was manually accepted by the user; 0.5 needs fresh interactive validation. See [usage and manual checklist](milestone-0.5.md).
 
-Public desktop moves, cross-volume transfers, folder portals, automatic path tracking and multiple Pens remain future work.
+Folder portals, direct transfers between Pens, deletion, automatic path tracking and broader shell/display validation remain future work.

@@ -1,6 +1,6 @@
 # Features
 
-Milestone 0.4 adds actual desktop item moves into and out of dedicated Pen storage, no-overwrite conflict handling and recovery. Native icons, opening and existing reference membership remain supported. See [usage and verification](milestone-0.4.md).
+Milestone 0.5 adds empty-desktop rectangle creation and multiple persistent Pens. Each Pen has independent settings, visibility, membership and storage. Folder Portal creation is visibly disabled. See [usage and verification](milestone-0.5.md).
 
 The broader features below remain **planned**.
 
