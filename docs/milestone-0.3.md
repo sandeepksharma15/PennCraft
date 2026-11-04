@@ -10,7 +10,7 @@ Drag an item out onto **exposed desktop space** to remove it from the Pen. Its o
 
 ## Persistence and boundaries
 
-ItemPaths are stored in the existing `%LOCALAPPDATA%\\PennCraft\\pen.json` with title, geometry, opacity and visibility. Earlier settings without ItemPaths load with an empty grid. References save immediately after adding/removing; geometry retains the existing debounce and atomic replacement. Renaming or moving a source externally can leave a stale reference; automatic path tracking and file watching are deferred.
+ItemPaths are stored in the existing `%LOCALAPPDATA%\PennCraft\pen.json` with title, geometry, opacity and visibility. Earlier settings without ItemPaths load with an empty grid. References save immediately after adding/removing; geometry retains the existing debounce and atomic replacement. Renaming or moving a source externally can leave a stale reference; automatic path tracking and file watching are deferred.
 
 Inbound WPF FileDrop accepts Copy/Link effects and refuses Move-only drags. Copy/Link here means adding a reference; no physical file is copied. Virtual shell objects (This PC, Recycle Bin, Outlook attachments) without filesystem paths are not supported. Folders open in Explorer; their contents are not listed inside the Pen.
 
