@@ -53,11 +53,12 @@
                 </Grid.RowDefinitions>
                 <Border x:Name="Header" Background="Transparent" CornerRadius="6,6,0,0">
                     <Grid Margin="5,2">
-                        <Thumb DragDelta="MovePen" MouseDoubleClick="EditTitle" Cursor="SizeAll"
-                               ToolTip="Drag to move. Double-click to rename."/>
+                        <Thumb DragDelta="MovePen" Cursor="SizeAll"
+                               ToolTip="Drag to move."/>
                         <TextBlock x:Name="TitleLabel" Text="Programs" Foreground="White" FontSize="15"
                                    FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="34,0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="IBeam"
+                                   MouseLeftButtonDown="EditTitle" ToolTip="Click to rename"/>
                         <TextBox x:Name="TitleEditor" Visibility="Collapsed" Margin="34,0" MaxLength="80"
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Background="#FF202026" Foreground="White" BorderThickness="0"
