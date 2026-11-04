@@ -19,10 +19,12 @@ public sealed record PenSettings
     public double BackgroundOpacity { get; init; } = 0.78;
     public bool IsVisible { get; init; } = true;
     public string[] ItemPaths { get; init; } = [];
+    public TrackedItem[] TrackedItems { get; init; } = [];
 
     public PenSettings Normalize() => this with
     {
         ItemPaths = PenMembership.Normalize(ItemPaths),
+        TrackedItems = ItemTracking.Normalize(ItemPaths ?? [], TrackedItems),
         Title = string.IsNullOrWhiteSpace(Title) ? "Programs" : Title.Trim()[..Math.Min(Title.Trim().Length, 80)],
         Left = double.IsFinite(Left) ? Left : 100,
         Top = double.IsFinite(Top) ? Top : 100,

@@ -7,6 +7,7 @@ namespace PennCraft.Desktop.Items;
 public sealed class PenItem(string path) : INotifyPropertyChanged
 {
     private ImageSource? icon;
+    private bool isSelected;
 
     public string Path { get; } = path;
     public string DisplayName
@@ -21,6 +22,17 @@ public sealed class PenItem(string path) : INotifyPropertyChanged
     }
     public string ToolTip => PenMembership.Exists(Path)
         ? Path : $"Unavailable: {Path}\nThe reference is retained. Restore the item or remove it from the Pen.";
+
+    public bool IsSelected
+    {
+        get => isSelected;
+        set
+        {
+            if (isSelected == value) return;
+            isSelected = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+        }
+    }
 
     public ImageSource? Icon
     {

@@ -12,8 +12,8 @@
 | 7 — Personalization | Themes, animation, import/export |
 | 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Milestone 0.5
+## Milestone 0.6
 
-Implemented desktop rectangle creation, temporary preview/menu and multiple persistent Pens with independent settings, storage and journals. Milestone 0.4 was manually accepted by the user; 0.5 needs fresh interactive validation. See [usage and manual checklist](milestone-0.5.md).
+Implemented single-item classic Windows context menus and storage-aware Pen commands, with persisted identity reconciliation for rename/delete and parent-folder notifications. The user manually accepted 0.5; fresh 0.6 shell-handler and file-operation acceptance remains pending. See [usage and manual checklist](milestone-0.6.md).
 
-Folder portals, direct transfers between Pens, deletion, automatic path tracking and broader shell/display validation remain future work.
+Folder portals, multi-item operations, direct transfers between Pens, Pen deletion and broader shell/provider validation remain future work.

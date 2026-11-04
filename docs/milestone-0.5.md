@@ -1,3 +1,5 @@
+> Item menus and rename/delete reconciliation are extended in [Milestone 0.6](milestone-0.6.md). Desktop creation and workspace behavior below remain applicable.
+
 # Milestone 0.5 — desktop creation and multiple Pens
 
 ## Use

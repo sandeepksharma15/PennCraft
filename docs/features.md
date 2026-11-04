@@ -1,6 +1,6 @@
 # Features
 
-Milestone 0.5 adds empty-desktop rectangle creation and multiple persistent Pens. Each Pen has independent settings, visibility, membership and storage. Folder Portal creation is visibly disabled. See [usage and verification](milestone-0.5.md).
+Milestone 0.6 adds native item context menus, Move to Desktop/Remove from Pen, Explorer selection and rename/delete membership updates. See [usage and verification](milestone-0.6.md).
 
 The broader features below remain **planned**.
 

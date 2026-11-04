@@ -56,3 +56,9 @@ Move intent is flushed before rename. The destination identity is verified befor
 WorkspaceController owns all Pen windows, a single tray icon, the transient CreationPreview and DesktopCreationGesture. WorkspaceStore indexes stable Pen IDs; each window keeps its own PenSettingsStore and PenMoveService. Default paths are retained for migration, and new IDs are validated before constructing paths.
 
 The observer runs on a dedicated message-pump thread and always calls the next input observer. DesktopIconSnapshot runs on a separate MTA thread. CreationGesturePolicy checks physical rectangles against icons and visible windows. No Explorer state is changed, and uncertain/stale geometry fails closed. CreationPreview writes no state; only its enabled creation action commits a new ID/settings pair. See [behavior and boundaries](milestone-0.5.md).
+
+## Item context menus
+
+ShellContextMenu owns shell PIDLs, IContextMenu interfaces, HMENU lifetime and temporary message forwarding on the owning STA. Native commands remain shell-owned; rename uses a host dialog plus the shared no-overwrite rename gate. MainWindow.ItemMenus routes item versus background input and the storage-aware membership actions.
+
+TrackedItem extends settings with stable file identities. ItemTracking reconciles only the original parent folders and performs no filesystem mutations. Watchers debounce onto the WPF dispatcher; metadata scans run on workers. Snapshots are saved before shell changes so startup can reconcile interrupted membership updates. Unknown/incomplete/ambiguous identities are retained. Existing physical move journals take priority over shell actions. See [semantics and validation](milestone-0.6.md).

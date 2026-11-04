@@ -5,7 +5,8 @@
         Left="100" Top="100" WindowStyle="None" ResizeMode="CanResize"
         AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" ShowActivated="False" AllowDrop="True"
-        PreviewDragOver="PreviewItemDragOver" PreviewDrop="DropItems">
+        PreviewDragOver="PreviewItemDragOver" PreviewDrop="DropItems"
+        MouseRightButtonUp="PenBackgroundRightClick" KeyDown="ItemContextKey">
     <Window.Resources>
         <Style x:Key="HeaderButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
@@ -89,6 +90,7 @@
                                             ToolTip="{Binding ToolTip}"
                                             PreviewMouseLeftButtonDown="ItemMouseDown"
                                             PreviewMouseLeftButtonUp="ItemMouseUp"
+                                            PreviewMouseRightButtonUp="ItemRightClick"
                                             PreviewMouseMove="ItemMouseMove"
                                             AutomationProperties.Name="{Binding DisplayName}">
                                         <Border.Style>
@@ -98,6 +100,9 @@
                                                     <Trigger Property="IsMouseOver" Value="True">
                                                         <Setter Property="Background" Value="#25FFFFFF"/>
                                                     </Trigger>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="Background" Value="#554C78A8"/>
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
