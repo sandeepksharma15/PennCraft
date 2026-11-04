@@ -38,3 +38,9 @@ Unit test pure behavior and persistence; integration-test Windows boundaries; ma
 The WPF window owns presentation and UI event handling. PenSettings is immutable user intent; PenSettingsStore normalizes and atomically replaces a JSON snapshot. PenGeometry implements resize constraints independently of WPF. TrayCommands owns and disposes the notification icon and dispatches commands to WPF.
 
 DesktopSurface isolates native HWND styles, shell rediscovery, visibility and bottom z-order. Temporary native visibility never changes persisted user intent. Explicit rename briefly permits keyboard activation; ordinary dragging and resizing retain no-activate behavior. All shell operations target the Pen HWND; Explorer is never reparented, injected into or modified. See [usage, tradeoffs and acceptance](milestone-0.2.md).
+
+## Desktop items
+
+PenMembership owns ordered, normalized, case-insensitive path references and never performs filesystem mutations. PenItem presents labels and frozen icons; the MainWindow item partial binds an ObservableCollection and orchestrates explicit actions. ItemPaths extends the existing JSON settings without a migration requirement.
+
+Windows adapters own native shell icons, launching and read-only desktop hit testing. Icons use a serial STA worker and release HICON handles after creating frozen bitmaps. Incoming drags are reference-only Copy/Link operations. Outgoing drags carry a private membership format; desktop release removes the reference locally without handing files to Explorer. See [semantics and acceptance](milestone-0.3.md).

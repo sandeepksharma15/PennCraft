@@ -4,7 +4,7 @@
 
 PennCraft is an open-source Windows desktop organizer for arranging shortcuts, files, and folders into customizable enclosures called **Pens**. The long-term goal is a lightweight, reliable, extensible workspace for Windows.
 
-> Early development: Milestone 0.2 provides one customizable desktop Pen, durable settings and tray visibility commands. See [usage and Windows acceptance checks](docs/milestone-0.2.md). Icon management and folder portals remain planned.
+> Early development: Milestone 0.3 adds file/shortcut references, native icons, double-click opening, safe desktop drag-out and persistent membership. Original desktop icons remain visible. See [usage and Windows acceptance checks](docs/milestone-0.3.md).
 
 ## Planned capabilities
 
@@ -21,8 +21,8 @@ C# · .NET 10 · WPF · Windows 11 · xUnit v3.
 ## Repository
 
 - `docs/` — [architecture](docs/architecture.md), [features](docs/features.md), and [roadmap](docs/roadmap.md).
-- `src/PennCraft.Desktop/` — WPF Pen prototype and isolated Windows integration.
-- `tests/PennCraft.Desktop.Tests/` — xUnit v3 policy and native HWND tests.
+- `src/PennCraft.Desktop/` — WPF Pen UI, item membership and isolated Windows integration.
+- `tests/PennCraft.Desktop.Tests/` — xUnit v3 membership, persistence, geometry and native Windows tests.
 
 ## Build
 

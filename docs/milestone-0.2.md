@@ -1,3 +1,5 @@
+> Foundation reference: item handling is extended in [Milestone 0.3](milestone-0.3.md). The no-item/drop restrictions below describe 0.2 only.
+
 # Milestone 0.2 — Pen foundation
 
 ## Use

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using PennCraft.Desktop.Windows;
+using PennCraft.Desktop.Items;
 
 namespace PennCraft.Desktop;
 
@@ -16,9 +17,11 @@ public sealed record PenSettings
     public double Height { get; init; } = 300;
     public double BackgroundOpacity { get; init; } = 0.78;
     public bool IsVisible { get; init; } = true;
+    public string[] ItemPaths { get; init; } = [];
 
     public PenSettings Normalize() => this with
     {
+        ItemPaths = PenMembership.Normalize(ItemPaths),
         Title = string.IsNullOrWhiteSpace(Title) ? "Programs" : Title.Trim()[..Math.Min(Title.Trim().Length, 80)],
         Left = double.IsFinite(Left) ? Left : 100,
         Top = double.IsFinite(Top) ? Top : 100,

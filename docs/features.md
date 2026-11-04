@@ -1,6 +1,6 @@
 # Features
 
-Milestone 0.2 implements one movable/resizable Pen, editable title, translucent background, hover controls, tray visibility commands and persistent settings. Manual Windows 11 acceptance is pending. See [usage and verification](milestone-0.2.md).
+Milestone 0.3 adds desktop item references with native icons, a responsive grid, double-click opening, drag-out membership removal and persistence. Original desktop icons remain visible. See [usage and verification](milestone-0.3.md).
 
 The broader features below remain **planned**.
 
