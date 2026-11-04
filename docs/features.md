@@ -1,6 +1,6 @@
 # Features
 
-Milestone 0.3 adds desktop item references with native icons, a responsive grid, double-click opening, drag-out membership removal and persistence. Original desktop icons remain visible. See [usage and verification](milestone-0.3.md).
+Milestone 0.4 adds actual desktop item moves into and out of dedicated Pen storage, no-overwrite conflict handling and recovery. Native icons, opening and existing reference membership remain supported. See [usage and verification](milestone-0.4.md).
 
 The broader features below remain **planned**.
 

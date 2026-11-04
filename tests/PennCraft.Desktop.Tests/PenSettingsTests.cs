@@ -57,8 +57,8 @@ public sealed class PenSettingsTests
         WithStore((store, path) =>
         {
             Assert.True(store.Save(new PenSettings { Title = "Original" }));
-            Directory.CreateDirectory(path + ".tmp");
-            Assert.False(store.Save(new PenSettings { Title = "Replacement" }));
+            using (var locked = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                Assert.False(store.Save(new PenSettings { Title = "Replacement" }));
             Assert.Equal("Original", store.Load().Title);
         });
     }

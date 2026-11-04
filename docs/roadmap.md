@@ -12,8 +12,8 @@
 | 7 — Personalization | Themes, animation, import/export |
 | 8 — Distribution | Installer, startup, accessibility, performance |
 
-## Milestone 0.3
+## Milestone 0.4
 
-Implemented reference-based desktop item integration on the Pen foundation: native icons, a wrapping grid, double-click opening, desktop drag-out membership removal and durable item paths. Original desktop icons remain visible. See [usage and manual checklist](milestone-0.3.md).
+Implemented actual same-volume moves between the user desktop and dedicated Pen storage, with conflict refusal, flushed intent/settings snapshots and identity-based recovery. Milestone 0.3 was manually accepted by the user; 0.4 requires fresh interactive validation. See [usage and manual checklist](milestone-0.4.md).
 
-Interactive Windows shell acceptance remains pending. Folder portals, physical file organization, icon hiding, automatic path tracking and multiple Pens remain future work.
+Public desktop moves, cross-volume transfers, folder portals, automatic path tracking and multiple Pens remain future work.

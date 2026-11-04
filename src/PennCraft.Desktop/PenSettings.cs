@@ -2,6 +2,7 @@ using System.IO;
 using System.Text.Json;
 using PennCraft.Desktop.Windows;
 using PennCraft.Desktop.Items;
+using PennCraft.Desktop.Infrastructure;
 
 namespace PennCraft.Desktop;
 
@@ -52,12 +53,10 @@ public sealed class PenSettingsStore(string filePath)
 
     public bool Save(PenSettings settings)
     {
-        var temporaryPath = filePath + ".tmp";
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(filePath))!);
-            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(settings.Normalize(), JsonOptions));
-            File.Move(temporaryPath, filePath, overwrite: true);
+            AtomicJsonFile.Write(filePath, settings.Normalize(), JsonOptions);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

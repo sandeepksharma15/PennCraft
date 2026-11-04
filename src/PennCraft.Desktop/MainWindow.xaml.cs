@@ -80,14 +80,21 @@ public partial class MainWindow : Window
         saveTimer.Start();
     }
 
-    private void SaveSettings()
+    private bool SaveSettings()
     {
         settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
-        store.Save(settings);
+        return store.Save(settings);
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
+        if (itemMovesBusy || itemDragActive)
+        {
+            e.Cancel = true;
+            exiting = false;
+            ItemStatus.Text = "Wait for the current item operation to finish before exiting.";
+            return;
+        }
         if (exiting) return;
         e.Cancel = true;
         HidePen();
@@ -205,6 +212,11 @@ public partial class MainWindow : Window
             opacity.Items.Add(item);
         }
         menu.Items.Add(opacity);
+        var storage = new MenuItem { Header = "Open Pen storage folder" };
+        storage.Click += (_, _) => ItemStatus.Text = moves is null
+            ? "Windows could not locate the user desktop."
+            : ShellItemLauncher.Open(moves.StorageDirectory) ?? string.Empty;
+        menu.Items.Add(storage);
         var hide = new MenuItem { Header = "Hide Pen" };
         hide.Click += (_, _) => HidePen();
         menu.Items.Add(hide);
