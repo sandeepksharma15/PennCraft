@@ -85,31 +85,32 @@ internal sealed class DesktopCreationGesture : IDisposable
         {
             if (code >= 0 && !disposed)
             {
-            var msg = unchecked((int)message);
-            var mouse = Marshal.PtrToStructure<MouseData>(data);
-            var moved = mouse.Point.X != lastPoint.X || mouse.Point.Y != lastPoint.Y;
-            var sequence = msg != 0x0200 || moved ? Interlocked.Increment(ref serial) : Interlocked.Read(ref serial);
-            lastPoint = mouse.Point;
-            if (msg is 0x0201 or 0x0204 or 0x0207 && !DesktopGeometry.IsOwnProcessAt(mouse.Point))
-                ui.BeginInvoke(dismiss);
-            if (!enabled || (mouse.Flags & 1) != 0 || ModifiersPressed()) drawing = null;
-            else if (msg == 0x0201)
-            {
-                var cached = Volatile.Read(ref snapshot);
-                drawing = cached is { IsFresh: true } && DesktopGeometry.IsDesktopAt(mouse.Point)
-                    && !cached.Icons.Any(icon => icon.Contains(mouse.Point.ToPoint()))
-                    ? new(mouse.Point, mouse.Point, cached, sequence) : null;
-            }
-            else if (message == 0x0200 && drawing is not null && !DesktopGeometry.IsDesktopAt(mouse.Point))
-                drawing = null;
-            else if (message == 0x0202)
-            {
-                if (drawing is { } candidate && DesktopGeometry.IsDesktopAt(mouse.Point))
-                    candidates.TryAdd(candidate with { End = mouse.Point, Serial = sequence });
-                drawing = null;
-            }
-            else if (message is 0x0204 or 0x0207 or 0x020B or 0x020A)
-                drawing = null;
+                var msg = unchecked((int)message);
+                var mouse = Marshal.PtrToStructure<MouseData>(data);
+                var moved = mouse.Point.X != lastPoint.X || mouse.Point.Y != lastPoint.Y;
+                var sequence = msg != 0x0200 || moved
+                    ? Interlocked.Increment(ref serial) : Interlocked.Read(ref serial);
+                lastPoint = mouse.Point;
+                if ((msg is 0x0201 or 0x0204 or 0x0207) && !DesktopGeometry.IsOwnProcessAt(mouse.Point))
+                    ui.BeginInvoke(dismiss);
+                if (!enabled || (mouse.Flags & 1) != 0 || ModifiersPressed()) drawing = null;
+                else if (msg == 0x0201)
+                {
+                    var cached = Volatile.Read(ref snapshot);
+                    drawing = cached is { IsFresh: true } && DesktopGeometry.IsDesktopAt(mouse.Point)
+                        && !cached.Icons.Any(icon => icon.Contains(mouse.Point.ToPoint()))
+                        ? new(mouse.Point, mouse.Point, cached, sequence) : null;
+                }
+                else if (msg == 0x0200 && drawing is not null && !DesktopGeometry.IsDesktopAt(mouse.Point))
+                    drawing = null;
+                else if (msg == 0x0202)
+                {
+                    if (drawing is { } candidate && DesktopGeometry.IsDesktopAt(mouse.Point))
+                        candidates.TryAdd(candidate with { End = mouse.Point, Serial = sequence });
+                    drawing = null;
+                }
+                else if (msg is 0x0204 or 0x0207 or 0x020B or 0x020A)
+                    drawing = null;
             }
         }
         catch (InvalidOperationException)

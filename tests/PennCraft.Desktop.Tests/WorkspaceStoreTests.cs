@@ -105,6 +105,31 @@ public sealed class WorkspaceStoreTests
         });
     }
 
+    [Fact]
+    public async Task ConcurrentPensCannotPrepareTwoMovesForTheSameDesktopFile()
+    {
+        var desktop = Path.Combine(Path.GetTempPath(), "PennCraft-concurrent-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(desktop);
+        try
+        {
+            var first = new PenMoveService(desktop);
+            var second = new PenMoveService(desktop, Guid.NewGuid().ToString("N"));
+            first.Recover([]);
+            second.Recover([]);
+            var source = Path.Combine(desktop, "Shared.txt");
+            File.WriteAllText(source, "Keep");
+            var results = await Task.WhenAll(
+                Task.Run(() => first.MoveInto(source), TestContext.Current.CancellationToken),
+                Task.Run(() => second.MoveInto(source), TestContext.Current.CancellationToken));
+            var completed = Assert.Single(results.Where(result => result.Moved));
+            Assert.NotNull(Assert.Single(results.Where(result => !result.Moved)).Error);
+            Assert.Equal("Keep", File.ReadAllText(completed.Destination));
+            Assert.False(File.Exists(source));
+            Assert.Equal(1, MoveJournalFile.Read(first.JournalPath).Length + MoveJournalFile.Read(second.JournalPath).Length);
+        }
+        finally { Directory.Delete(desktop, recursive: true); }
+    }
+
     private static void WithDirectory(Action<string> test)
     {
         var directory = Path.Combine(Path.GetTempPath(), "PennCraft-workspace-tests", Guid.NewGuid().ToString("N"));

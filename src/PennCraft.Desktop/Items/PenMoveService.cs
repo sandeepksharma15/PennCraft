@@ -15,6 +15,7 @@ internal sealed record MoveRecovery(string[] ItemPaths, Guid[] ResolvedIds, stri
 /// <summary>Owns desktop-to-storage moves and their recovery journal. Use from one serialized worker.</summary>
 internal sealed class PenMoveService
 {
+    private static readonly object MoveGate = new();
     private const string OwnerText = "PennCraft managed desktop storage v1";
     private readonly string desktop;
     private readonly string root;
@@ -100,6 +101,12 @@ internal sealed class PenMoveService
     }
 
     private MoveOutcome Move(string source, string destination, bool intoPen)
+    {
+        // Different Pens share the desktop source/destination and storage ownership marker.
+        lock (MoveGate) return MoveCore(source, destination, intoPen);
+    }
+
+    private MoveOutcome MoveCore(string source, string destination, bool intoPen)
     {
         if (!recovered) return new(source, destination, null, "Startup recovery must finish before moving items.");
         if (blockedReason is not null) return new(source, destination, null, blockedReason);

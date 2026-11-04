@@ -15,7 +15,7 @@ Creation is suppressed for modifiers, injected input, drags starting over icons,
 
 The notification-area icon lists all Pens by their current titles, with Show, Hide and Reset position commands. It also offers New Pen, Show all Pens, Hide all Pens, Desktop rectangle creation (toggle), and Exit. Double-clicking the icon shows all Pens. Close still hides a Pen.
 
-Each new Pen has an immutable GUID identity and independent settings, visibility, item membership, storage and move journal. Its display title can change without relocating files. Moving directly between Pens is deferred; move an item back to the desktop, then into another Pen.
+Each new Pen has an immutable GUID identity and independent settings, visibility, item membership, storage and move journal. Its display title can change without relocating files. Physical moves are serialized across Pens so they cannot race over one desktop item or destination. Moving directly between Pens is deferred; move an item back to the desktop, then into another Pen.
 
 The existing Pen remains Default. Its pen.json, .PennCraft/Default/Items and recovery journal are preserved in place. Workspace membership lives in workspace.json beside pen.json; new settings live in Pens/{id}.json and physical storage in desktop/.PennCraft/{id}/Items. Startup migration writes only the workspace index. A malformed/unsupported workspace index stops startup without replacing it.
 

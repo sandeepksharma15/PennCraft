@@ -45,9 +45,11 @@ internal sealed class WorkspaceController : IDisposable
     {
         if (disposed || !settings.CreationEnabled || pens.Any(pen => !pen.CanExit)) return;
         DismissPreview();
-        preview = new CreationPreview(region, bounds => CreatePen(bounds));
-        preview.Closed += (_, _) => preview = null;
-        preview.Show();
+        if (DesktopGeometry.Obstacles().Any(region.IntersectsWith)) return;
+        var offered = new CreationPreview(region, bounds => CreatePen(bounds));
+        preview = offered;
+        offered.Closed += (_, _) => { if (ReferenceEquals(preview, offered)) preview = null; };
+        offered.Show();
     }
 
     private void DismissPreview() => preview?.Close();
