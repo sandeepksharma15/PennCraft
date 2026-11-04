@@ -158,6 +158,6 @@ internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop
             throw new IOException("Cannot commit Pen membership.");
     }
 
-    private static bool IsExpected(Exception exception) => exception is IOException or UnauthorizedAccessException
+    private static bool IsExpected(Exception exception) => exception is IOException or InvalidDataException or UnauthorizedAccessException
         or System.ComponentModel.Win32Exception or ArgumentException or JsonException or COMException or OperationCanceledException or NotSupportedException;
 }
