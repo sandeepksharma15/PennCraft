@@ -18,6 +18,7 @@ public sealed record PenSettings
     public double Height { get; init; } = 300;
     public double BackgroundOpacity { get; init; } = 0.78;
     public bool IsVisible { get; init; } = true;
+    public string? PortalFolder { get; init; }
     public string[] ItemPaths { get; init; } = [];
     public TrackedItem[] TrackedItems { get; init; } = [];
 

@@ -11,7 +11,7 @@ public partial class MainWindow
     private bool transferBusy;
     private bool transferRecoveryBlocked;
 
-    internal bool CanBeginTransfer(bool source) => !transferBusy && !transferRecoveryBlocked
+    internal bool CanBeginTransfer(bool source) => !IsPortal && !transferBusy && !transferRecoveryBlocked
         && !moveSettingsBlocked && !itemMovesBusy && !itemMenuBusy && !itemReconciliationBusy
         && (source || !itemDragActive) && moves is { HasUnresolvedMoves: false };
 

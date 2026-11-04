@@ -16,4 +16,8 @@
 
 Implemented direct single-item transfers between Pens with physical stored-item moves, reference-only membership transfers, opaque drag tokens and a workspace-level recovery journal. The user manually accepted 0.6; fresh 0.7 interactive acceptance remains pending. See [usage and manual checklist](milestone-0.7.md).
 
-Folder portals, multi-item operations, copy transfers, Pen deletion, undo UI and broader shell/provider validation remain future work.
+Portal file operations, multi-item operations, copy transfers, Pen deletion, undo UI and broader shell/provider validation remain future work.
+
+## Milestone 0.8
+
+Basic Folder Portals display live immediate folder contents, open items and retain the folder connection and window settings. File operations remain deferred. See [scope and manual checks](milestone-0.8.md).

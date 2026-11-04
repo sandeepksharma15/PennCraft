@@ -45,6 +45,7 @@ public partial class MainWindow
 
     private async Task ShowItemMenuAsync(PenItem item, Point pixels)
     {
+        if (IsPortal) { ShowPortalItemMenu(item); return; }
         if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moveSettingsBlocked
             || moves?.HasUnresolvedMoves == true)
         {
@@ -198,7 +199,7 @@ public partial class MainWindow
 
     private async Task ReconcileItemsAsync()
     {
-        if (itemsDisposed || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moves?.HasUnresolvedMoves == true) return;
+        if (IsPortal || itemsDisposed || itemReconciliationBusy || transferBusy || transferRecoveryBlocked || moves?.HasUnresolvedMoves == true) return;
         itemReconciliationBusy = true;
         try
         {
