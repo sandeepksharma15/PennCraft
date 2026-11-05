@@ -81,6 +81,12 @@ public partial class MainWindow
                 await RemoveReferenceAsync(item);
                 return;
             }
+            if (VirtualDesktopItem.IsRecycleBin(item.Path))
+            {
+                if (choice.Action == ItemMenuAction.ShellCommand) menu.Invoke(choice.CommandId);
+                else ItemStatus.Text = "Use the Windows item commands for Recycle Bin.";
+                return;
+            }
             if (clickedIdentity is null
                 || await Task.Run(() => ItemTracking.TryIdentity(item.Path)) != clickedIdentity
                 || settings.TrackedItems.Any(entry => string.Equals(entry.Path, item.Path, StringComparison.OrdinalIgnoreCase)
@@ -226,7 +232,7 @@ public partial class MainWindow
     private void RestartItemWatchers()
     {
         Volatile.Write(ref watchedMembers, settings.ItemPaths.ToHashSet(StringComparer.OrdinalIgnoreCase));
-        var parents = settings.ItemPaths.Select(Path.GetDirectoryName).OfType<string>()
+        var parents = settings.ItemPaths.Where(path => !VirtualDesktopItem.IsRecycleBin(path)).Select(Path.GetDirectoryName).OfType<string>()
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var watcher in itemWatchers.ToArray())
         {

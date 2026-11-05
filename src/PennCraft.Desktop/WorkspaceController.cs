@@ -1,5 +1,7 @@
 using System.IO;
 using System.Text.Json;
+using System.Windows.Threading;
+using PennCraft.Desktop.Items;
 using System.Windows;
 using PennCraft.Desktop.Windows;
 
@@ -17,16 +19,22 @@ internal sealed class WorkspaceController : IDisposable
     private WorkspaceSettings settings;
     private CreationPreview? preview;
     private bool disposed;
+    private readonly RecycleBinVisibility recycleBin;
+    private readonly DispatcherTimer iconTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     public WorkspaceController(Application app)
     {
         this.app = app;
         store = new WorkspaceStore(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PennCraft"));
         settings = store.Load();
+        recycleBin = new RecycleBinVisibility(store.RecycleBinStatePath, new DesktopIconSetting());
+        SyncRecycleBin(restore: true);
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         transfers = new PenTransferCoordinator(store, desktop, () => pens);
         transfers.Recover();
         foreach (var id in settings.PenIds) OpenPen(id);
+        iconTimer.Tick += (_, _) => SyncRecycleBin();
+        iconTimer.Start();
         gesture = new DesktopCreationGesture(app.Dispatcher, OfferCreation, DismissPreview)
         {
             Enabled = settings.CreationEnabled
@@ -115,10 +123,33 @@ internal sealed class WorkspaceController : IDisposable
         app.Shutdown();
     }
 
+    private void SyncRecycleBin(bool restore = false)
+    {
+        try
+        {
+            if (restore) recycleBin.Restore();
+            else if (pens.All(pen => pen.CanExit))
+            {
+                // Read durable membership: failed UI saves must never hide the Windows icon.
+                var present = settings.PenIds.Any(id => new PenSettingsStore(store.SettingsPath(id)).Load().ItemPaths
+                    .Any(VirtualDesktopItem.IsRecycleBin));
+                recycleBin.Update(present);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException
+            or JsonException or System.Security.SecurityException)
+        {
+            Diagnostics.Write($"Recycle Bin visibility could not be updated: {exception.GetType().Name}");
+            foreach (var pen in pens) pen.SetTransferStatus("Recycle Bin desktop visibility could not be updated. Check Windows Desktop Icon Settings.");
+        }
+    }
+
     public void Dispose()
     {
         if (disposed) return;
         disposed = true;
+        iconTimer.Stop();
+        SyncRecycleBin(restore: true);
         DismissPreview();
         gesture.Dispose();
         tray.Dispose();

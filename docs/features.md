@@ -22,3 +22,7 @@ The broader features below remain **planned**.
 ## Safety expectations
 
 Visual grouping must not silently move or delete files. Explicit filesystem operations require clear intent. Explorer restarts and display changes should not destroy saved arrangements.
+
+## One-time setup and virtual items
+
+Fresh workspaces receive Documents, Programs and Folders Pens with the fixed first-run grouping. Existing workspaces are untouched. Recycle Bin references support opening, Windows menus and Pen transfers; desktop icon visibility is restored on removal or normal exit. See [Milestone 0.10](milestone-0.10.md).

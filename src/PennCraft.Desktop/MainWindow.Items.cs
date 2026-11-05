@@ -113,6 +113,11 @@ public partial class MainWindow
                 e.Effects = PortalIncomingEffect(e);
                 return;
             }
+            if (VirtualItemDrop.IsRecycleBin(e.Data))
+            {
+                e.Effects = VirtualDropEffect(e.AllowedEffects);
+                return;
+            }
             e.Effects = ItemDragPolicy.IncomingEffect(e.AllowedEffects,
                 e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false));
         }
@@ -129,6 +134,17 @@ public partial class MainWindow
         {
             if (await DropInternalTransferAsync(e)) return;
             if (IsPortal) { await DropIntoPortalAsync(e); return; }
+            if (VirtualItemDrop.IsRecycleBin(e.Data))
+            {
+                e.Effects = VirtualDropEffect(e.AllowedEffects);
+                if (e.Effects != DragDropEffects.None)
+                {
+                    settings = settings with { ItemPaths = PenMembership.Normalize(settings.ItemPaths.Append(VirtualDesktopItem.RecycleBin)) };
+                    RefreshItemViews();
+                    if (!SaveSettings()) PauseMoves();
+                }
+                return;
+            }
             if (ItemDragPolicy.IncomingEffect(e.AllowedEffects,
                     e.Data.GetDataPresent(DataFormats.FileDrop, autoConvert: false)) == DragDropEffects.None
                 || e.Data.GetData(DataFormats.FileDrop, autoConvert: false) is not string[] dropped) return;
@@ -177,6 +193,10 @@ public partial class MainWindow
         }
         finally { itemMovesBusy = false; }
     }
+
+    private static DragDropEffects VirtualDropEffect(DragDropEffects allowed) =>
+        (allowed & DragDropEffects.Link) != 0 ? DragDropEffects.Link
+        : (allowed & DragDropEffects.Copy) != 0 ? DragDropEffects.Copy : DragDropEffects.None;
 
     private void PauseMoves()
     {

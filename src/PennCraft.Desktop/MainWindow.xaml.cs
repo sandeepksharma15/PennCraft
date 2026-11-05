@@ -211,6 +211,18 @@ public partial class MainWindow : Window
         var rename = new MenuItem { Header = "Rename Pen" };
         rename.Click += (_, _) => Dispatcher.InvokeAsync(BeginEditing);
         menu.Items.Add(rename);
+        if (!IsPortal)
+        {
+            var recycle = new MenuItem { Header = "Add Recycle Bin", IsEnabled = CanExit && !transferRecoveryBlocked && !moveSettingsBlocked };
+            recycle.Click += (_, _) =>
+            {
+                if (!CanExit || transferRecoveryBlocked || moveSettingsBlocked) return;
+                settings = settings with { ItemPaths = Items.PenMembership.Normalize(settings.ItemPaths.Append(Items.VirtualDesktopItem.RecycleBin)) };
+                RefreshItemViews();
+                if (!SaveSettings()) PauseMoves();
+            };
+            menu.Items.Add(recycle);
+        }
         var opacity = new MenuItem { Header = "Background opacity" };
         foreach (var value in new[] { 0.35, 0.55, 0.78, 1.0 })
         {

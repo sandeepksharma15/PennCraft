@@ -19,6 +19,7 @@ public static class PenMembership
 
     public static string? NormalizePath(string? path)
     {
+        if (VirtualDesktopItem.IsRecycleBin(path)) return VirtualDesktopItem.RecycleBin;
         if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path)) return null;
         try
         {
@@ -30,7 +31,7 @@ public static class PenMembership
         }
     }
 
-    public static bool Exists(string path) => File.Exists(path) || Directory.Exists(path);
+    public static bool Exists(string path) => VirtualDesktopItem.IsRecycleBin(path) || File.Exists(path) || Directory.Exists(path);
 
     public static string[] Add(IEnumerable<string> current, IEnumerable<string> dropped) =>
         Normalize(current.Concat(Normalize(dropped).Where(Exists)));

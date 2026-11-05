@@ -25,3 +25,7 @@ Basic Folder Portals display live immediate folder contents, open items and reta
 ## Milestone 0.9
 
 Windows-managed single-item Portal moves and native item context menus are implemented. Milestone 0.8 was manually accepted; 0.9 requires fresh interactive acceptance. Multi-selection and copy modifiers remain deferred. See [usage and checks](milestone-0.9.md).
+
+## Milestone 0.10
+
+One-time fresh-workspace setup groups desktop PDFs, .lnk shortcuts and folders into Documents, Programs and Folders Pens. Recycle Bin can be added as a namespace reference with reversible desktop icon visibility. There is no recurring organization. See [scope and manual checks](milestone-0.10.md).
