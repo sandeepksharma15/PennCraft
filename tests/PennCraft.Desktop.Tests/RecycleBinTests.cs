@@ -91,6 +91,8 @@ public sealed class RecycleBinTests
         {
             visibility.Update(true);
             setting.Values["NewStartPanel"] = 0;
+            visibility.Update(true); // Polling must not undo an explicit Windows settings change.
+            Assert.Equal(0, setting.Read("NewStartPanel"));
             visibility.Restore();
             Assert.Equal(0, setting.Read("NewStartPanel"));
             File.WriteAllText(state, "{broken");

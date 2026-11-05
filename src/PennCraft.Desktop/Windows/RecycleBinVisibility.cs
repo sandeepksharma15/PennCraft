@@ -44,27 +44,32 @@ internal sealed record RecycleBinBaseline([property: JsonRequired] int Version,
 /// <summary>Owns only the two current-user Recycle Bin visibility values, with a durable restore record.</summary>
 internal sealed class RecycleBinVisibility(string statePath, IDesktopIconSetting setting)
 {
+    private bool applied;
+
     public void Update(bool hide)
     {
         if (!hide) { Restore(); return; }
         if (!File.Exists(statePath))
             AtomicJsonFile.Write(statePath, new RecycleBinBaseline(1, setting.Read("NewStartPanel"), setting.Read("ClassicStartMenu")));
         else ReadBaseline(); // Never overwrite an unreadable recovery record.
-        if (setting.Read("NewStartPanel") == 1 && setting.Read("ClassicStartMenu") == 1) return;
+        if (applied) return; // Respect a later Windows setting change during this running session.
+        if (setting.Read("NewStartPanel") == 1 && setting.Read("ClassicStartMenu") == 1) { applied = true; return; }
         setting.Write("NewStartPanel", 1);
         setting.Write("ClassicStartMenu", 1);
         setting.Refresh();
+        applied = true;
     }
 
     public void Restore()
     {
-        if (!File.Exists(statePath)) return;
+        if (!File.Exists(statePath)) { applied = false; return; }
         var baseline = ReadBaseline();
         // Preserve an explicit external change made while PennCraft was running.
         if (setting.Read("NewStartPanel") == 1) setting.Write("NewStartPanel", baseline.NewStartPanel);
         if (setting.Read("ClassicStartMenu") == 1) setting.Write("ClassicStartMenu", baseline.ClassicStartMenu);
         setting.Refresh();
         File.Delete(statePath);
+        applied = false;
     }
 
     private RecycleBinBaseline ReadBaseline()
