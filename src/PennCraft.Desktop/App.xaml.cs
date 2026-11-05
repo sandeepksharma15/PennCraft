@@ -34,6 +34,7 @@ public partial class App : Application
             var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             var report = await Task.Run(() => new FirstRunOrganizer(new WorkspaceStore(directory), desktop).Run());
             workspace = new WorkspaceController(this);
+            await workspace.OfferOrganizationAsync();
             if (report is { Skipped.Length: > 0 })
                 MessageBox.Show("First-run organization finished. Some items could not be moved and were left on the desktop. They will not be retried automatically.",
                     "PennCraft", MessageBoxButton.OK, MessageBoxImage.Information);

@@ -4,7 +4,7 @@ using PennCraft.Desktop.Infrastructure;
 
 namespace PennCraft.Desktop;
 
-internal sealed record WorkspaceSettings(int Version, string[] PenIds, bool CreationEnabled = true);
+internal sealed record WorkspaceSettings(int Version, string[] PenIds, bool CreationEnabled = true, bool OrganizationOfferDismissed = false);
 
 internal sealed class WorkspaceStore(string directory)
 {

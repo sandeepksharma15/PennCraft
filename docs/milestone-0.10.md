@@ -37,3 +37,23 @@ Manual checks:
 - Record Explorer refresh, DPI and Windows-version behavior separately from automated evidence.
 
 References: [CIDA shell drag format](https://learn.microsoft.com/windows/win32/api/shlobj_core/ns-shlobj_core-cida), [desktop icon settings](https://support.microsoft.com/windows/show-desktop-icons-in-windows-cf659abf-7ec4-4a16-9c2c-379f8a54aa7f).
+
+## Offer organization after emptying the workspace
+
+Closing a Pen hides it; it does not delete its settings. On restart, after item recovery finishes, PennCraft now offers organization when every saved Pen is empty and hidden. A visible Pen, any saved membership (including an unavailable reference or Recycle Bin), a visible Folder Portal, or pending move recovery suppresses the offer.
+
+The prompt previews counts for PDFs, .lnk shortcuts and desktop folders. No is the default. Nothing moves unless Yes is chosen. Matching Documents, Programs and Folders Pens are reused and shown; missing categories get new Pens. Other existing empty Pens are retained. The preview is read-only and only its listed paths are submitted to the existing journaled incoming-move flow. There is still no recurring organization.
+
+Declining is remembered across restarts while the workspace remains empty/hidden. Using a Pen again (showing it or adding an item) re-arms the offer for a later empty-and-hidden restart. A desktop with no matching items produces no prompt.
+
+### Test the empty-workspace offer
+
+1. Update to this change. Prepare disposable desktop PDFs, .lnk shortcuts and a normal folder.
+2. Move all items out of every Pen; remove external/system references as well. Hiding an item is not removing its membership.
+3. Close/hide all Pens. Hidden Folder Portals are retained and do not prevent the offer; a visible Portal does.
+4. Exit PennCraft through its tray menu, then launch it again. Hiding Pens alone leaves the process running.
+5. Verify the prompt's counts. Choose Yes and confirm matching Pens are reused/shown and items arrive there.
+6. Repeat the empty/hidden setup and choose No. Confirm no moves, no deleted Pens and no repeated prompt on another restart.
+7. Show a Pen, hide it again, exit and restart to verify the offer is re-armed.
+
+Automated tests cover eligibility exclusions, persisted dismissal and older workspace settings, read-only preview counts, plus existing incoming move/recovery behavior. The prompt and tray interaction remain manual Windows acceptance.
