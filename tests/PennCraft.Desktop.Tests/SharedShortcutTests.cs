@@ -37,7 +37,7 @@ public sealed class SharedShortcutTests
     {
         WithWorkspace((workspace, desktop, shared, storage) =>
         {
-            var source = Path.Combine(shared, relative);
+            var source = Path.GetFullPath(Path.Combine(shared, relative));
             Directory.CreateDirectory(Path.GetDirectoryName(source)!);
             File.WriteAllText(source, "keep");
             var service = new PortalMoveService(workspace, desktop, shared);
