@@ -97,7 +97,7 @@ public sealed class RecycleBinTests
             Assert.Throws<JsonException>(() => visibility.Update(true));
             Assert.Equal(0, setting.Read("NewStartPanel"));
             Assert.Equal("{broken", File.ReadAllText(state));
-            File.WriteAllText(state, "{\\"Version\\":1}");
+            File.WriteAllText(state, JsonSerializer.Serialize(new { Version = 1 }));
             Assert.Throws<JsonException>(() => visibility.Restore());
             Assert.Equal(0, setting.Read("NewStartPanel"));
         });
