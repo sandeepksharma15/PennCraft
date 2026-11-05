@@ -161,9 +161,17 @@ public partial class MainWindow
         await MoveIncomingItemsAsync(paths);
     }
 
-    internal async Task MoveIncomingItemsAsync(string[] paths)
+    internal async Task MoveIncomingItemsAsync(string[] paths, bool sharedMoveConfirmed = false)
     {
         if (!CanBeginTransfer(source: false)) return;
+        var shared = paths.Where(path => SharedDesktopShortcut.Is(path)).ToArray();
+        paths = paths.Where(path => !SharedDesktopShortcut.Is(path)).ToArray();
+        if (shared.Length != 0)
+        {
+            await MoveSharedShortcutsAsync(shared, sharedMoveConfirmed);
+            if (!CanBeginTransfer(false)) return;
+        }
+        if (paths.Length == 0) return;
         itemMovesBusy = true;
         ItemStatus.Text = "Moving desktop items into the Pen…";
         try

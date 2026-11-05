@@ -68,12 +68,18 @@ public partial class MainWindow
         {
             var clickedIdentity = await Task.Run(() => ItemTracking.TryIdentity(item.Path));
             using var menu = new ShellContextMenu(item.Path, new WindowInteropHelper(this).Handle,
-                moves?.IsManaged(item.Path) == true, includeMembership: !IsPortal);
+                moves?.IsManaged(item.Path) == true, includeMembership: !IsPortal, sharedShortcut: !IsPortal && SharedDesktopShortcut.Is(item.Path));
             var choice = menu.Show(pixels);
             if (choice.Action == ItemMenuAction.Cancel) return;
             if (choice.Action == ItemMenuAction.ShowInExplorer)
             {
                 ShellContextMenu.ShowInExplorer(item.Path);
+                return;
+            }
+            if (choice.Action == ItemMenuAction.MoveSharedIntoPen)
+            {
+                itemMenuBusy = false; // The native menu is closed; the coordinator reserves all windows for the move.
+                await MoveSharedShortcutsAsync([item.Path]);
                 return;
             }
             if (choice.Action == ItemMenuAction.RemoveReference)
