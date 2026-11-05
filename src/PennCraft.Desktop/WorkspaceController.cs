@@ -73,6 +73,7 @@ internal sealed class WorkspaceController : IDisposable
         settings = store.Load();
         if (result.Removed)
         {
+            RearmOrganizationOffer();
             pens.Remove(pen);
             if (ReferenceEquals(app.MainWindow, pen)) app.MainWindow = pens.FirstOrDefault();
             pen.CompleteDeletion();
