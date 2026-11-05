@@ -12,7 +12,13 @@ internal static class ShellItemLauncher
         if (!PenMembership.Exists(path)) return "This item is unavailable. Its reference has been kept in the Pen.";
         try
         {
-            using var process = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+            var start = new ProcessStartInfo(path) { UseShellExecute = true };
+            if (VirtualDesktopItem.IsRecycleBin(path))
+            {
+                start = new ProcessStartInfo("explorer.exe") { UseShellExecute = true };
+                start.ArgumentList.Add("shell:" + VirtualDesktopItem.RecycleBin);
+            }
+            using var process = Process.Start(start);
             return null;
         }
         catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException

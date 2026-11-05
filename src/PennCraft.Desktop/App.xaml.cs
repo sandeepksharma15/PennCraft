@@ -11,7 +11,7 @@ public partial class App : Application
     private FileStream? instanceLock;
     private WorkspaceController? workspace;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         try
         {
@@ -30,12 +30,18 @@ public partial class App : Application
         base.OnStartup(e);
         try
         {
+            var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PennCraft");
+            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var report = await Task.Run(() => new FirstRunOrganizer(new WorkspaceStore(directory), desktop).Run());
             workspace = new WorkspaceController(this);
+            if (report is { Skipped.Length: > 0 })
+                MessageBox.Show("First-run organization finished. Some items could not be moved and were left on the desktop. They will not be retried automatically.",
+                    "PennCraft", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException
             or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            MessageBox.Show("The saved workspace could not be opened. Existing settings and files were left untouched.",
+            MessageBox.Show("The workspace could not finish opening. Saved settings and move recovery records were retained. Restart PennCraft to reconcile interrupted moves.",
                 "PennCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
             Shutdown();
         }

@@ -107,6 +107,7 @@ internal static class ItemTracking
 
     public static string? TryIdentity(string path)
     {
+        if (VirtualDesktopItem.IsRecycleBin(path)) return null;
         try { return NativeFileMove.Identity(path); }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or Win32Exception
             or ArgumentException or NotSupportedException) { return null; }

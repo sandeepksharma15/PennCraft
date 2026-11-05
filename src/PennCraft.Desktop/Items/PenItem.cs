@@ -14,13 +14,15 @@ public sealed class PenItem(string path) : INotifyPropertyChanged
     {
         get
         {
+            if (VirtualDesktopItem.IsRecycleBin(Path)) return "Recycle Bin";
             var name = System.IO.Path.GetFileName(Path);
             if (string.IsNullOrEmpty(name)) return Path;
             return System.IO.Path.GetExtension(name).ToLowerInvariant() is ".lnk" or ".url"
                 ? System.IO.Path.GetFileNameWithoutExtension(name) : name;
         }
     }
-    public string ToolTip => PenMembership.Exists(Path)
+    public string ToolTip => VirtualDesktopItem.IsRecycleBin(Path) ? "Recycle Bin — Windows system item"
+        : PenMembership.Exists(Path)
         ? Path : $"Unavailable: {Path}\nThe reference is retained. Restore the item or remove it from the Pen.";
 
     public bool IsSelected
