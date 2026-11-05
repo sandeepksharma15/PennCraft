@@ -20,6 +20,7 @@ internal sealed class WorkspaceController : IDisposable
     private CreationPreview? preview;
     private bool disposed;
     private readonly RecycleBinVisibility recycleBin;
+    private bool iconScanBusy;
     private readonly DispatcherTimer iconTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     public WorkspaceController(Application app)
@@ -28,7 +29,7 @@ internal sealed class WorkspaceController : IDisposable
         store = new WorkspaceStore(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PennCraft"));
         settings = store.Load();
         recycleBin = new RecycleBinVisibility(store.RecycleBinStatePath, new DesktopIconSetting());
-        SyncRecycleBin(restore: true);
+        UpdateRecycleBinVisibility(false);
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         transfers = new PenTransferCoordinator(store, desktop, () => pens);
         transfers.Recover();
@@ -123,25 +124,43 @@ internal sealed class WorkspaceController : IDisposable
         app.Shutdown();
     }
 
-    private void SyncRecycleBin(bool restore = false)
+    private async void SyncRecycleBin()
     {
+        if (disposed || iconScanBusy || pens.Any(pen => !pen.CanExit)) return;
+        iconScanBusy = true;
         try
         {
-            if (restore) recycleBin.Restore();
-            else if (pens.All(pen => pen.CanExit))
+            var ids = settings.PenIds.ToArray();
+            // File reads and JSON parsing must not occupy the WPF dispatcher.
+            var present = await Task.Run(() => ids.Any(id =>
             {
-                // Read durable membership: failed UI saves must never hide the Windows icon.
-                var present = settings.PenIds.Any(id => new PenSettingsStore(store.SettingsPath(id)).Load().ItemPaths
-                    .Any(VirtualDesktopItem.IsRecycleBin));
-                recycleBin.Update(present);
-            }
+                var saved = new PenSettingsStore(store.SettingsPath(id)).Load();
+                return saved.PortalFolder is null && saved.ItemPaths.Any(VirtualDesktopItem.IsRecycleBin);
+            }));
+            if (!disposed && pens.All(pen => pen.CanExit)) UpdateRecycleBinVisibility(present);
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException
             or JsonException or System.Security.SecurityException)
         {
-            Diagnostics.Write($"Recycle Bin visibility could not be updated: {exception.GetType().Name}");
-            foreach (var pen in pens) pen.SetTransferStatus("Recycle Bin desktop visibility could not be updated. Check Windows Desktop Icon Settings.");
+            ReportRecycleBinError(exception);
         }
+        finally { iconScanBusy = false; }
+    }
+
+    private void UpdateRecycleBinVisibility(bool hide)
+    {
+        try { recycleBin.Update(hide); }
+        catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException
+            or JsonException or System.Security.SecurityException)
+        {
+            ReportRecycleBinError(exception);
+        }
+    }
+
+    private void ReportRecycleBinError(Exception exception)
+    {
+        Diagnostics.Write($"Recycle Bin visibility could not be updated: {exception.GetType().Name}");
+        foreach (var pen in pens) pen.SetTransferStatus("Recycle Bin desktop visibility could not be updated. Check Windows Desktop Icon Settings.");
     }
 
     public void Dispose()
@@ -149,7 +168,7 @@ internal sealed class WorkspaceController : IDisposable
         if (disposed) return;
         disposed = true;
         iconTimer.Stop();
-        SyncRecycleBin(restore: true);
+        UpdateRecycleBinVisibility(false);
         DismissPreview();
         gesture.Dispose();
         tray.Dispose();

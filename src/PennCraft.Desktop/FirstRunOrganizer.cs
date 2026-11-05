@@ -7,7 +7,7 @@ namespace PennCraft.Desktop;
 internal sealed record FirstRunReport(int Moved, string[] Skipped);
 
 /// <summary>One startup attempt. The workspace is durable before the first physical operation.</summary>
-internal sealed class FirstRunOrganizer(WorkspaceStore workspace, string desktop)
+internal sealed class FirstRunOrganizer(WorkspaceStore workspace, string desktop, Func<string, FileAttributes>? readAttributes = null)
 {
     internal static string? Category(string path, FileAttributes attributes)
     {
@@ -20,9 +20,19 @@ internal sealed class FirstRunOrganizer(WorkspaceStore workspace, string desktop
     {
         if (!workspace.IsUninitialized || !Directory.Exists(desktop) || Directory.Exists(Path.Combine(desktop, ".PennCraft"))) return null;
         var groups = new Dictionary<string, List<string>> { ["Documents"] = [], ["Programs"] = [], ["Folders"] = [] };
-        // Inventory first: failure cannot leave a partially published workspace or start moving files.
+        // Inventory first. One unreadable/deleted entry must not stop other categories.
+        var skipped = new List<string>();
         foreach (var path in Directory.EnumerateFileSystemEntries(desktop))
-            if (Category(path, File.GetAttributes(path)) is { } category) groups[category].Add(path);
+        {
+            try
+            {
+                if (Category(path, (readAttributes ?? File.GetAttributes)(path)) is { } category) groups[category].Add(path);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                skipped.Add(path);
+            }
+        }
         var ids = groups.Keys.ToDictionary(title => title, _ => Guid.NewGuid().ToString("N"));
         var index = 0;
         foreach (var (title, id) in ids)
@@ -34,7 +44,6 @@ internal sealed class FirstRunOrganizer(WorkspaceStore workspace, string desktop
         // Publishing consumes the one-time opportunity. A crash never starts a second desktop scan.
         workspace.Save(new WorkspaceSettings(1, [.. ids.Values]));
         var moved = 0;
-        var skipped = new List<string>();
         foreach (var (title, paths) in groups)
         {
             var id = ids[title];

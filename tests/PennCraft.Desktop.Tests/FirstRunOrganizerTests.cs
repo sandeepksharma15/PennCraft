@@ -41,6 +41,22 @@ public sealed class FirstRunOrganizerTests
         Assert.True(File.Exists(later));
     }
 
+    [Fact]
+    public void UnreadableInventoryEntryIsSkippedWithoutStoppingOtherMoves()
+    {
+        using var fixture = new Fixture();
+        var blocked = Path.Combine(fixture.Desktop, "Blocked.pdf");
+        var readable = Path.Combine(fixture.Desktop, "Readable.pdf");
+        File.WriteAllText(blocked, "keep");
+        File.WriteAllText(readable, "move");
+        var report = new FirstRunOrganizer(fixture.Store, fixture.Desktop,
+            path => path == blocked ? throw new UnauthorizedAccessException() : File.GetAttributes(path)).Run();
+        Assert.Equal(1, report!.Moved);
+        Assert.Equal(blocked, Assert.Single(report.Skipped));
+        Assert.Equal("keep", File.ReadAllText(blocked));
+        Assert.False(File.Exists(readable));
+    }
+
     [Theory]
     [InlineData("workspace")]
     [InlineData("legacy")]
