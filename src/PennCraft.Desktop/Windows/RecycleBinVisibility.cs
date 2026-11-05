@@ -1,6 +1,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Win32;
 using PennCraft.Desktop.Infrastructure;
 
@@ -37,7 +38,8 @@ internal sealed class DesktopIconSetting : IDesktopIconSetting
     [DllImport("shell32.dll")] private static extern void SHChangeNotify(uint change, uint flags, nint first, nint second);
 }
 
-internal sealed record RecycleBinBaseline(int Version, int? NewStartPanel, int? ClassicStartMenu);
+internal sealed record RecycleBinBaseline([property: JsonRequired] int Version,
+    [property: JsonRequired] int? NewStartPanel, [property: JsonRequired] int? ClassicStartMenu);
 
 /// <summary>Owns only the two current-user Recycle Bin visibility values, with a durable restore record.</summary>
 internal sealed class RecycleBinVisibility(string statePath, IDesktopIconSetting setting)

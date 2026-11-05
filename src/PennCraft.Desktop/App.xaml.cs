@@ -41,7 +41,7 @@ public partial class App : Application
         catch (Exception exception) when (exception is IOException or InvalidDataException
             or UnauthorizedAccessException or System.Text.Json.JsonException)
         {
-            MessageBox.Show("The saved workspace could not be opened. Existing settings and files were left untouched.",
+            MessageBox.Show("The workspace could not finish opening. Saved settings and move recovery records were retained. Restart PennCraft to reconcile interrupted moves.",
                 "PennCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
             Shutdown();
         }
