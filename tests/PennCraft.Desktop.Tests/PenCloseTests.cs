@@ -5,7 +5,7 @@ using Xunit;
 namespace PennCraft.Desktop.Tests;
 
 [CollectionDefinition("Pen close UI", DisableParallelization = true)]
-public sealed class PenCloseCollection;
+public sealed class PenCloseCollection { }
 
 [Collection("Pen close UI")]
 public sealed class PenCloseTests
@@ -51,7 +51,7 @@ public sealed class PenCloseTests
                 catch (Exception exception) { completion.TrySetException(exception); }
                 finally
                 {
-                    window?.ExitApplication();
+                    if (window is { IsVisible: true }) window.ExitApplication();
                     dispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
                 }
             });

@@ -21,11 +21,13 @@ internal sealed class PenDeletionService(WorkspaceStore workspace, string deskto
         lock (PenMoveService.FileOperationGate)
         {
             var prepared = false;
+            var journalChecked = false;
             var removed = false;
             try
             {
                 if (BlockedReason is not null || ReadJournal() is not null)
                     return new(false, "An earlier Pen deletion needs recovery. Restart before deleting another Pen.");
+                journalChecked = true;
                 var index = workspace.Load();
                 if (!index.PenIds.Contains(id, StringComparer.OrdinalIgnoreCase)) throw new InvalidDataException("Unknown Pen.");
                 ValidateEmpty(id, allowMissingSettings: false);
@@ -38,7 +40,7 @@ internal sealed class PenDeletionService(WorkspaceStore workspace, string deskto
             }
             catch (Exception exception) when (Expected(exception))
             {
-                if (prepared) BlockedReason = "An interrupted Pen deletion needs recovery. Remaining files were retained; restart PennCraft before more item operations.";
+                if (prepared || !journalChecked && File.Exists(JournalPath)) BlockedReason = "An interrupted Pen deletion needs recovery. Remaining files were retained; restart PennCraft before more item operations.";
                 return new(removed, BlockedReason ?? "This Pen could not be deleted. Check its storage for files, recovery records or access restrictions.");
             }
         }
