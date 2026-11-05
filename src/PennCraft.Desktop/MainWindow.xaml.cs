@@ -63,6 +63,7 @@ public partial class MainWindow : Window
         };
     }
 
+    internal Action<MainWindow>? DeleteRequested { get; set; }
     internal Action<MainWindow>? DeleteEmptyRequested { get; set; }
     internal Task ItemsReady { get; }
     internal event EventHandler? SettingsSaved;
@@ -280,6 +281,14 @@ public partial class MainWindow : Window
         var hide = new MenuItem { Header = "Hide Pen" };
         hide.Click += (_, _) => HidePen();
         menu.Items.Add(hide);
+        var delete = new MenuItem
+        {
+            Header = IsPortal ? "Delete Folder Portal…" : "Delete Pen…",
+            IsEnabled = CanExit && (IsPortal || settings.ItemPaths.Length == 0),
+            ToolTip = "Removes the container. Empty an ordinary Pen before deleting it."
+        };
+        delete.Click += (_, _) => DeleteRequested?.Invoke(this);
+        menu.Items.Add(delete);
         menu.PlacementTarget = target;
         menu.IsOpen = true;
     }

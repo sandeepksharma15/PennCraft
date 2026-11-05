@@ -7,6 +7,8 @@ namespace PennCraft.Desktop.Windows;
 /// <summary>Independent top-level HWND; never parents to or modifies an Explorer window.</summary>
 internal sealed class DesktopSurface : IDisposable
 {
+    private static readonly object BandGate = new();
+    private static readonly List<DesktopSurface> Surfaces = [];
     private readonly nint hwnd;
     private readonly HwndSource source;
     private bool editing;
@@ -27,6 +29,7 @@ internal sealed class DesktopSurface : IDisposable
         if (Native.SetWindowLongPtr(hwnd, -20, (style | 0x08000080) & ~0x00040000) == 0
             && Marshal.GetLastWin32Error() != 0)
             throw new Win32Exception(Marshal.GetLastWin32Error());
+        lock (BandGate) Surfaces.Add(this);
         Diagnostics.Write($"start OS={Environment.OSVersion} runtime={Environment.Version} hwnd={hwnd:X}");
     }
 
@@ -71,12 +74,11 @@ internal sealed class DesktopSurface : IDisposable
         }
         else
         {
-            // Repair native hide/minimize from Show Desktop without changing durable user intent.
-            // Reassert bottom z-order even when another application activates the Pen's popup menu.
-            if (Native.IsIconic(hwnd)) Native.ShowWindow(hwnd, 4); // SW_SHOWNOACTIVATE
-            if (!Native.SetWindowPos(hwnd, 1, 0, 0, 0, 0, 0x0010 | 0x0001 | 0x0002 | 0x0040))
+            // Restore Show Desktop hides, but do not rotate overlapping Pens on every timer tick.
+            if (Native.IsIconic(hwnd) || !Native.IsWindowVisible(hwnd)) Native.ShowWindow(hwnd, 4);
+            if (!RepairBand())
             {
-                Diagnostics.Write($"SetWindowPos failed error={Marshal.GetLastWin32Error()}");
+                Diagnostics.Write($"Pen band placement failed error={Marshal.GetLastWin32Error()}");
                 Native.ShowWindow(hwnd, 0);
                 visible = null;
                 return;
@@ -87,8 +89,38 @@ internal sealed class DesktopSurface : IDisposable
         visible = show;
     }
 
+    private static bool RepairBand()
+    {
+        lock (BandGate)
+        {
+            var active = Surfaces.Where(surface => Native.IsWindowVisible(surface.hwnd) && !Native.IsIconic(surface.hwnd))
+                .Reverse().ToArray(); // Newer Pens remain above older Pens.
+            if (active.Length == 0) return true;
+            var windows = new List<DesktopBandWindow>();
+            var visited = new HashSet<nint>();
+            for (var window = Native.GetTopWindow(0); window != 0 && visited.Add(window); window = Native.GetWindow(window, 2))
+            {
+                if (!Native.IsWindowVisible(window) || Native.IsIconic(window)) continue;
+                var name = new System.Text.StringBuilder(256);
+                Native.GetClassName(window, name, name.Capacity);
+                windows.Add(new(window, name.ToString() is "Progman" or "WorkerW"));
+            }
+            if (!DesktopBandPolicy.NeedsRepair(active.Select(surface => surface.hwnd).ToArray(), [.. windows])) return true;
+            // Commit all changes together so repair itself cannot expose intermediate overlap order.
+            var batch = Native.BeginDeferWindowPos(active.Length);
+            if (batch == 0) return false;
+            foreach (var surface in active)
+            {
+                batch = Native.DeferWindowPos(batch, surface.hwnd, 1, 0, 0, 0, 0, 0x0010 | 0x0001 | 0x0002 | 0x0200);
+                if (batch == 0) return false;
+            }
+            return Native.EndDeferWindowPos(batch);
+        }
+    }
+
     public void Dispose()
     {
+        lock (BandGate) Surfaces.Remove(this);
         source.RemoveHook(Hook);
         Diagnostics.Write("stop");
     }
@@ -96,6 +128,13 @@ internal sealed class DesktopSurface : IDisposable
 
 internal static class Native
 {
+    [DllImport("user32.dll")] internal static extern nint GetTopWindow(nint hwnd);
+    [DllImport("user32.dll")] internal static extern nint GetWindow(nint hwnd, uint command);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern int GetClassName(nint hwnd, System.Text.StringBuilder text, int maximum);
+    [DllImport("user32.dll", SetLastError = true)] internal static extern nint BeginDeferWindowPos(int count);
+    [DllImport("user32.dll", SetLastError = true)] internal static extern nint DeferWindowPos(nint batch, nint hwnd, nint after, int x, int y, int width, int height, uint flags);
+    [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool EndDeferWindowPos(nint batch);
     [DllImport("user32.dll")] internal static extern nint GetParent(nint hwnd);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern nint SendMessage(nint hwnd, uint message, nint wParam, nint lParam);
     [DllImport("user32.dll")] internal static extern nint GetShellWindow();

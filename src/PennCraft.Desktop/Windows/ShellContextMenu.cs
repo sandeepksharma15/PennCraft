@@ -5,7 +5,7 @@ using System.Windows.Interop;
 
 namespace PennCraft.Desktop.Windows;
 
-internal enum ItemMenuAction { Cancel, ShellCommand, Rename, MoveToDesktop, RemoveReference, ShowInExplorer }
+internal enum ItemMenuAction { Cancel, ShellCommand, Rename, MoveToDesktop, RemoveReference, ShowInExplorer, MoveSharedIntoPen }
 internal sealed record ItemMenuChoice(ItemMenuAction Action, uint CommandId = 0);
 
 /// <summary>STA-owned classic Windows shell menu for the item itself, including shortcut files.</summary>
@@ -15,6 +15,7 @@ internal sealed class ShellContextMenu : IDisposable
     private const uint LastShellId = 0x6FFF;
     private const uint MembershipId = 0x7000;
     private const uint ExplorerId = 0x7001;
+    private const uint SharedMoveId = 0x7002;
     private readonly nint owner;
     private readonly bool managed;
     private readonly bool oleInitialized;
@@ -29,7 +30,7 @@ internal sealed class ShellContextMenu : IDisposable
 
     internal int ShellCommandCount { get; private set; }
 
-    public ShellContextMenu(string path, nint owner, bool managed, bool includeMembership = true)
+    public ShellContextMenu(string path, nint owner, bool managed, bool includeMembership = true, bool sharedShortcut = false)
     {
         this.owner = owner;
         this.managed = managed;
@@ -56,6 +57,7 @@ internal sealed class ShellContextMenu : IDisposable
             Append(0x800, 0, null);
             if (includeMembership) Append(0, MembershipId, managed ? "Move to Desktop" : "Remove from Pen");
             Append(0, ExplorerId, "Show in File Explorer");
+            if (sharedShortcut) Append(0, SharedMoveId, "Move shared shortcut into Pen…");
         }
         catch
         {
@@ -80,6 +82,7 @@ internal sealed class ShellContextMenu : IDisposable
             if (command == 0) return new(ItemMenuAction.Cancel);
             if (command == MembershipId) return new(managed ? ItemMenuAction.MoveToDesktop : ItemMenuAction.RemoveReference);
             if (command == ExplorerId) return new(ItemMenuAction.ShowInExplorer);
+            if (command == SharedMoveId) return new(ItemMenuAction.MoveSharedIntoPen);
             return new(string.Equals(CanonicalVerb(command), "rename", StringComparison.OrdinalIgnoreCase)
                 ? ItemMenuAction.Rename : ItemMenuAction.ShellCommand, command);
         }

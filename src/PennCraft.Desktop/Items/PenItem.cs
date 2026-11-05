@@ -17,8 +17,9 @@ public sealed class PenItem(string path) : INotifyPropertyChanged
             if (VirtualDesktopItem.IsRecycleBin(Path)) return "Recycle Bin";
             var name = System.IO.Path.GetFileName(Path);
             if (string.IsNullOrEmpty(name)) return Path;
-            return System.IO.Path.GetExtension(name).ToLowerInvariant() is ".lnk" or ".url"
+            var display = System.IO.Path.GetExtension(name).ToLowerInvariant() is ".lnk" or ".url"
                 ? System.IO.Path.GetFileNameWithoutExtension(name) : name;
+            return SharedDesktopShortcut.Is(Path) ? $"{display} (reference)" : display;
         }
     }
     public string ToolTip => VirtualDesktopItem.IsRecycleBin(Path) ? "Recycle Bin — Windows system item"

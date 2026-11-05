@@ -99,23 +99,32 @@ internal sealed class PenTransferCoordinator(WorkspaceStore store, string deskto
         await MoveViaPortalAsync(null, target, path, identity);
     }
 
-    private async Task MoveViaPortalAsync(MainWindow? source, MainWindow? target, string path, string? identity)
+    public async Task<bool> MoveSharedShortcutIntoPenAsync(MainWindow target, string path)
+    {
+        if (busy || BlockedReason is not null || target.IsPortal || !SharedDesktopShortcut.Is(path)
+            || !target.CanBeginTransfer(false)) return false;
+        var identity = await Task.Run(() => ItemTracking.TryIdentity(path));
+        if (busy || !target.CanBeginTransfer(false)) return false;
+        return await MoveViaPortalAsync(null, target, path, identity);
+    }
+
+    private async Task<bool> MoveViaPortalAsync(MainWindow? source, MainWindow? target, string path, string? identity)
     {
         var all = windows().ToArray();
         // Reserve every container: multiple Portals may display the same underlying directory.
-        if (all.Any(window => !window.CanBeginTransfer(ReferenceEquals(window, source)))) return;
+        if (all.Any(window => !window.CanBeginTransfer(ReferenceEquals(window, source)))) return false;
         foreach (var window in all)
-            if (!window.FlushBeforePortalMove()) { (target ?? source)!.SetTransferStatus("Settings could not be saved. Move not started."); return; }
+            if (!window.FlushBeforePortalMove()) { (target ?? source)!.SetTransferStatus("Settings could not be saved. Move not started."); return false; }
         var folder = target?.PortalFolder ?? target?.MoveService?.StorageDirectory ?? desktop;
         if (target is { IsPortal: false } && target.MoveService!.PrepareTransferStorage(create: true) is { } error)
         {
             target.SetTransferStatus(error);
-            return;
+            return false;
         }
         if (source is { IsPortal: false } && source.MoveService!.PrepareTransferStorage(create: false) is { } sourceError)
         {
             source.SetTransferStatus(sourceError);
-            return;
+            return false;
         }
         busy = true;
         foreach (var window in all) window.ReserveTransfer();
@@ -128,6 +137,7 @@ internal sealed class PenTransferCoordinator(WorkspaceStore store, string deskto
             if (portalMoves.BlockedReason is { } blocked)
                 foreach (var window in all) window.BlockTransferRecovery(blocked);
             foreach (var window in all) window.SetTransferStatus(message ?? "Moved item.");
+            return message is null;
         }
         finally
         {

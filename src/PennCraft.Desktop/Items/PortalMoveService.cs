@@ -10,7 +10,7 @@ internal sealed record PortalMoveIntent(int Version, string? SourceId, string? T
     string Source, string Destination, string Identity, string? CompletedIdentity = null);
 
 /// <summary>Durable membership handoff around a Windows-managed move. Never replays filesystem operations.</summary>
-internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop)
+internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop, string? sharedDesktop = null)
 {
     internal string JournalPath => workspace.TransferJournalPath + ".portal";
     public string? BlockedReason { get; private set; }
@@ -111,12 +111,13 @@ internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop
             || PenMembership.NormalizePath(intent.Destination) != intent.Destination
             || !string.Equals(Path.GetFileName(intent.Source), Path.GetFileName(intent.Destination), StringComparison.Ordinal))
             throw new InvalidDataException("Invalid Portal move.");
-        ValidateScope(intent.SourceId, intent.Source);
+        ValidateScope(intent.SourceId, intent.Source, source: true);
         ValidateScope(intent.TargetId, intent.Destination);
     }
 
-    private void ValidateScope(string? id, string path)
+    private void ValidateScope(string? id, string path, bool source = false)
     {
+        if (id is null && source && SharedDesktopShortcut.Is(path, sharedDesktop)) return;
         var folder = desktop;
         if (id is not null)
         {
@@ -152,16 +153,17 @@ internal sealed class PortalMoveService(WorkspaceStore workspace, string desktop
 
     private void Commit(PortalMoveIntent intent)
     {
-        UpdateMembership(intent.TargetId, intent.Destination, add: true);
+        UpdateMembership(intent.TargetId, intent.Destination, add: true, replacedSource: intent.Source);
         UpdateMembership(intent.SourceId, intent.Source, add: false);
     }
 
-    private void UpdateMembership(string? id, string path, bool add)
+    private void UpdateMembership(string? id, string path, bool add, string? replacedSource = null)
     {
         if (id is null) return;
         var settings = Read(id);
         if (settings.PortalFolder is not null) return;
-        var paths = add ? PenMembership.Normalize(settings.ItemPaths.Append(path))
+        var paths = add ? PenMembership.Normalize(settings.ItemPaths.Select(existing =>
+            string.Equals(existing, replacedSource, StringComparison.OrdinalIgnoreCase) ? path : existing).Append(path))
             : PenMembership.Remove(settings.ItemPaths, path);
         if (!new PenSettingsStore(workspace.SettingsPath(id)).Save(settings with
             { ItemPaths = paths, TrackedItems = ItemTracking.Capture(paths, settings.TrackedItems) }))

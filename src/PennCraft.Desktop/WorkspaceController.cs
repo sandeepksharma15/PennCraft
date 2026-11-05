@@ -56,20 +56,32 @@ internal sealed class WorkspaceController : IDisposable
         var pen = new MainWindow(new PenSettingsStore(store.SettingsPath(id)), id) { Transfers = transfers };
         if ((deletions.BlockedReason ?? transfers.BlockedReason) is { } error) pen.BlockTransferRecovery(error);
         pen.DeleteEmptyRequested = DeleteEmptyPen;
+        pen.DeleteRequested = DeletePen;
         pens.Add(pen);
         pen.SettingsSaved += (_, _) => RearmOrganizationOffer(pen);
         pen.Show();
         return pen;
     }
 
-    private void DeleteEmptyPen(MainWindow pen)
+    private void DeleteEmptyPen(MainWindow pen) => DeleteContainer(pen, portal: false);
+
+    private void DeletePen(MainWindow pen)
+    {
+        var message = pen.IsPortal
+            ? $"Delete this Folder Portal?{Environment.NewLine}{pen.PortalFolder}{Environment.NewLine}{Environment.NewLine}The linked folder and all its contents will remain unchanged."
+            : "Delete this empty Pen permanently? Its saved settings and empty storage will be removed.";
+        if (MessageBox.Show(message, "Delete container", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes)
+            DeleteContainer(pen, portal: pen.IsPortal);
+    }
+
+    private void DeleteContainer(MainWindow pen, bool portal)
     {
         if (disposed || organizationBusy || !pens.Contains(pen) || pens.Any(window => !window.CanBeginTransfer(false)))
         {
             pen.SetTransferStatus("Finish the current operation or recovery before deleting an empty Pen.");
             return;
         }
-        var result = deletions.Delete(pen.PenId);
+        var result = deletions.Delete(pen.PenId, portal);
         settings = store.Load();
         if (result.Removed)
         {
@@ -175,7 +187,7 @@ internal sealed class WorkspaceController : IDisposable
         try
         {
             var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            var preview = await Task.Run(() => new FirstRunOrganizer(store, desktop).Preview());
+            var preview = await Task.Run(() => new FirstRunOrganizer(store, desktop).Preview(includeSharedShortcuts: true));
             // Tray commands may have shown a Pen while the preview was being read.
             if (disposed || !OrganizationOfferPolicy.IsEligible(pens.Select(pen => pen.TransferSnapshot()))) return;
             if (preview.Count == 0) return;
@@ -184,6 +196,8 @@ internal sealed class WorkspaceController : IDisposable
                 + $"{preview.Groups["Programs"].Length} shortcut(s) → Programs{Environment.NewLine}"
                 + $"{preview.Groups["Folders"].Length} folder(s) → Folders{Environment.NewLine}{Environment.NewLine}"
                 + "Other desktop items will stay where they are. Choose No to keep the current layout.";
+            var sharedCount = preview.Groups["Programs"].Count(path => SharedDesktopShortcut.Is(path));
+            if (sharedCount != 0) message += $"{Environment.NewLine}{Environment.NewLine}{sharedCount} shared desktop shortcut(s) are included. Moving these removes them for all Windows users and Windows may request administrator permission.";
             var choice = MessageBox.Show(message, "Organize desktop", MessageBoxButton.YesNo,
                 MessageBoxImage.Question, MessageBoxResult.No);
             if (disposed || pens.Any(pen => !pen.CanBeginTransfer(false))
@@ -200,7 +214,7 @@ internal sealed class WorkspaceController : IDisposable
                 if (pen is null) return;
                 await pen.ItemsReady;
                 pen.ShowPen();
-                await pen.MoveIncomingItemsAsync(paths);
+                await pen.MoveIncomingItemsAsync(paths, sharedMoveConfirmed: true);
                 if (!pen.CanBeginTransfer(false)) return;
             }
         }
@@ -209,6 +223,18 @@ internal sealed class WorkspaceController : IDisposable
             organizationBusy = false;
             if (!OrganizationOfferPolicy.IsEligible(pens.Select(pen => pen.TransferSnapshot()))) RearmOrganizationOffer();
         }
+    }
+
+    internal async Task OfferSharedShortcutsAsync()
+    {
+        await Task.WhenAll(pens.Select(pen => pen.ItemsReady));
+        var paths = await Task.Run(() => SharedDesktopShortcut.Enumerate());
+        if (paths.Length == 0 || disposed || pens.Any(pen => !pen.CanBeginTransfer(false))) return;
+        var programs = pens.FirstOrDefault(pen => !pen.IsPortal && string.Equals(pen.PenTitle, "Programs", StringComparison.OrdinalIgnoreCase));
+        if (programs is null) return;
+        organizationBusy = true;
+        try { await programs.MoveSharedShortcutsAsync(paths); }
+        finally { organizationBusy = false; }
     }
 
     private void RearmOrganizationOffer(MainWindow? changed = null)

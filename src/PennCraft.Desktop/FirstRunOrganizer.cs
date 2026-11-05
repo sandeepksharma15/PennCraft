@@ -63,7 +63,7 @@ internal sealed class FirstRunOrganizer(WorkspaceStore workspace, string desktop
         return report;
     }
 
-    internal OrganizationPreview Preview()
+    internal OrganizationPreview Preview(bool includeSharedShortcuts = false)
     {
         var groups = new Dictionary<string, List<string>> { ["Documents"] = [], ["Programs"] = [], ["Folders"] = [] };
         // Inventory first. One unreadable/deleted entry must not stop other categories.
@@ -79,6 +79,7 @@ internal sealed class FirstRunOrganizer(WorkspaceStore workspace, string desktop
                 skipped.Add(path);
             }
         }
+        if (includeSharedShortcuts) groups["Programs"].AddRange(SharedDesktopShortcut.Enumerate());
         return new(groups.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()), [.. skipped]);
     }
 }

@@ -33,7 +33,7 @@ internal static class ShellFileMove
             Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(source, 0, ref itemId, out sourceItem));
             Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(Path.GetDirectoryName(destination)!, 0, ref itemId, out targetFolder));
             operation.SetOwnerWindow(owner);
-            operation.SetOperationFlags(0); // Windows owns progress, cancellation, conflicts and permission UI.
+            operation.SetOperationFlags(0x00040000); // Windows owns progress, cancellation, conflicts and permission UI.
             operation.MoveItem(sourceItem, targetFolder, Path.GetFileName(destination), 0);
             operation.PerformOperations();
             operation.GetAnyOperationsAborted(out var aborted);

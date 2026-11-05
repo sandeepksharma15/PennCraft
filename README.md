@@ -4,7 +4,7 @@
 
 PennCraft is an open-source Windows desktop organizer for arranging shortcuts, files, and folders into customizable enclosures called **Pens**. The long-term goal is a lightweight, reliable, extensible workspace for Windows.
 
-> Early development: Milestone 0.10 adds one-time first-run desktop grouping and Recycle Bin references with restorable desktop visibility. See [usage and acceptance checks](docs/milestone-0.10.md).
+> Early development: Pens support one-time desktop organization, confirmed shared-shortcut moves, stable overlap ordering and explicit Folder Portal removal. See [usage and Windows acceptance checks](docs/milestone-0.10.md).
 
 ## Planned capabilities
 
