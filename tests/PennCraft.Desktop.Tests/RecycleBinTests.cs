@@ -30,6 +30,39 @@ public sealed class RecycleBinTests
         finally { Directory.Delete(directory, recursive: true); }
     }
 
+    [Fact]
+    public void RecycleBinTransfersBetweenPensAsMembershipAndMovesOutWithoutFilesystemMutation()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "PennCraft-bin-transfer", Guid.NewGuid().ToString("N"));
+        var desktop = Directory.CreateDirectory(Path.Combine(root, "Desktop")).FullName;
+        try
+        {
+            var workspace = new WorkspaceStore(Path.Combine(root, "Settings"));
+            var targetId = Guid.NewGuid().ToString("N");
+            workspace.Save(new WorkspaceSettings(1, ["Default", targetId]));
+            var source = new PenSettings { ItemPaths = [VirtualDesktopItem.RecycleBin] };
+            var target = new PenSettings();
+            Assert.True(new PenSettingsStore(workspace.SettingsPath("Default")).Save(source));
+            Assert.True(new PenSettingsStore(workspace.SettingsPath(targetId)).Save(target));
+            var sourceMoves = new PenMoveService(desktop);
+            var targetMoves = new PenMoveService(desktop, targetId);
+            Assert.Null(sourceMoves.Recover(source.ItemPaths).Error);
+            Assert.Null(targetMoves.Recover([]).Error);
+            var service = new PenTransferService(workspace, desktop);
+            var result = service.Transfer("Default", targetId, VirtualDesktopItem.RecycleBin, null,
+                source, target, sourceMoves, targetMoves);
+            Assert.True(result.Completed, result.Error);
+            Assert.Empty(result.Source.ItemPaths);
+            Assert.Equal(VirtualDesktopItem.RecycleBin, Assert.Single(result.Target.ItemPaths));
+            Assert.Null(service.Recover());
+            var moveOut = targetMoves.MoveOut(VirtualDesktopItem.RecycleBin);
+            Assert.Null(moveOut.Error);
+            Assert.False(moveOut.Moved);
+            Assert.Empty(Directory.EnumerateFileSystemEntries(desktop));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
