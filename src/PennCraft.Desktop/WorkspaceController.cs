@@ -156,6 +156,8 @@ internal sealed class WorkspaceController : IDisposable
                 + "Other desktop items will stay where they are. Choose No to keep the current layout.";
             var choice = MessageBox.Show(message, "Organize desktop", MessageBoxButton.YesNo,
                 MessageBoxImage.Question, MessageBoxResult.No);
+            if (disposed || pens.Any(pen => !pen.CanBeginTransfer(false))
+                || !OrganizationOfferPolicy.IsEligible(pens.Select(pen => pen.TransferSnapshot()))) return;
             var next = settings with { OrganizationOfferDismissed = true };
             store.Save(next); // Persist the decision before any moves.
             settings = next;

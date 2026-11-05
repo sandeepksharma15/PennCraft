@@ -40,7 +40,7 @@ References: [CIDA shell drag format](https://learn.microsoft.com/windows/win32/a
 
 ## Offer organization after emptying the workspace
 
-Closing a Pen hides it; it does not delete its settings. On restart, after item recovery finishes, PennCraft now offers organization when every saved Pen is empty and hidden. A visible Pen, any saved membership (including an unavailable reference or Recycle Bin), a Folder Portal, or pending move recovery suppresses the offer.
+Closing a Pen hides it; it does not delete its settings. On restart, after item recovery finishes, PennCraft now offers organization when every saved Pen is empty and hidden. A visible Pen, any saved membership (including an unavailable reference or Recycle Bin), a visible Folder Portal, or pending move recovery suppresses the offer.
 
 The prompt previews counts for PDFs, .lnk shortcuts and desktop folders. No is the default. Nothing moves unless Yes is chosen. Matching Documents, Programs and Folders Pens are reused and shown; missing categories get new Pens. Other existing empty Pens are retained. The preview is read-only and only its listed paths are submitted to the existing journaled incoming-move flow. There is still no recurring organization.
 
@@ -50,7 +50,7 @@ Declining is remembered across restarts while the workspace remains empty/hidden
 
 1. Update to this change. Prepare disposable desktop PDFs, .lnk shortcuts and a normal folder.
 2. Move all items out of every Pen; remove external/system references as well. Hiding an item is not removing its membership.
-3. Close/hide all Pens. A saved Folder Portal suppresses this offer, even if hidden.
+3. Close/hide all Pens. Hidden Folder Portals are retained and do not prevent the offer; a visible Portal does.
 4. Exit PennCraft through its tray menu, then launch it again. Hiding Pens alone leaves the process running.
 5. Verify the prompt's counts. Choose Yes and confirm matching Pens are reused/shown and items arrive there.
 6. Repeat the empty/hidden setup and choose No. Confirm no moves, no deleted Pens and no repeated prompt on another restart.

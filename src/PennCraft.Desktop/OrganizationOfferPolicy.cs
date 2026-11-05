@@ -1,8 +1,8 @@
 namespace PennCraft.Desktop;
 
-/// <summary>Empty includes hidden Pens, but never a live folder Portal or a saved item reference.</summary>
+/// <summary>Hidden Portals are preserved; visible containers or saved Pen references suppress the offer.</summary>
 internal static class OrganizationOfferPolicy
 {
     internal static bool IsEligible(IEnumerable<PenSettings> pens) =>
-        pens.All(pen => pen.PortalFolder is null && !pen.IsVisible && pen.ItemPaths is { Length: 0 });
+        pens.All(pen => !pen.IsVisible && (pen.PortalFolder is not null || pen.ItemPaths is { Length: 0 }));
 }

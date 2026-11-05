@@ -16,7 +16,8 @@ public sealed class OrganizationOfferTests
         Assert.False(OrganizationOfferPolicy.IsEligible([hidden, new PenSettings()]));
         Assert.False(OrganizationOfferPolicy.IsEligible([hidden with { ItemPaths = [Path.Combine(Path.GetTempPath(), "Unavailable.pdf")] }]));
         Assert.False(OrganizationOfferPolicy.IsEligible([hidden with { ItemPaths = [VirtualDesktopItem.RecycleBin] }]));
-        Assert.False(OrganizationOfferPolicy.IsEligible([hidden with { PortalFolder = Path.GetTempPath() }]));
+        Assert.True(OrganizationOfferPolicy.IsEligible([hidden with { PortalFolder = Path.GetTempPath() }]));
+        Assert.False(OrganizationOfferPolicy.IsEligible([new PenSettings { PortalFolder = Path.GetTempPath() }]));
     }
 
     [Fact]
