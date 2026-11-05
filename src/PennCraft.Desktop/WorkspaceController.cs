@@ -15,6 +15,7 @@ internal sealed class WorkspaceController : IDisposable
     private readonly List<MainWindow> pens = [];
     private readonly TrayCommands tray;
     private readonly PenTransferCoordinator transfers;
+    private readonly PenDeletionService deletions;
     private readonly DesktopCreationGesture gesture;
     private WorkspaceSettings settings;
     private CreationPreview? preview;
@@ -32,6 +33,9 @@ internal sealed class WorkspaceController : IDisposable
         recycleBin = new RecycleBinVisibility(store.RecycleBinStatePath, new DesktopIconSetting());
         UpdateRecycleBinVisibility(false);
         var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        deletions = new PenDeletionService(store, desktop);
+        deletions.Recover();
+        settings = store.Load();
         transfers = new PenTransferCoordinator(store, desktop, () => pens);
         transfers.Recover();
         foreach (var id in settings.PenIds) OpenPen(id);
@@ -50,11 +54,37 @@ internal sealed class WorkspaceController : IDisposable
     private MainWindow OpenPen(string id)
     {
         var pen = new MainWindow(new PenSettingsStore(store.SettingsPath(id)), id) { Transfers = transfers };
-        if (transfers.BlockedReason is { } error) pen.BlockTransferRecovery(error);
+        if ((deletions.BlockedReason ?? transfers.BlockedReason) is { } error) pen.BlockTransferRecovery(error);
+        pen.DeleteEmptyRequested = DeleteEmptyPen;
         pens.Add(pen);
         pen.SettingsSaved += (_, _) => RearmOrganizationOffer(pen);
         pen.Show();
         return pen;
+    }
+
+    private void DeleteEmptyPen(MainWindow pen)
+    {
+        if (disposed || organizationBusy || !pens.Contains(pen) || pens.Any(window => !window.CanBeginTransfer(false)))
+        {
+            pen.SetTransferStatus("Finish the current operation or recovery before deleting an empty Pen.");
+            return;
+        }
+        var result = deletions.Delete(pen.PenId);
+        settings = store.Load();
+        if (result.Removed)
+        {
+            RearmOrganizationOffer();
+            pens.Remove(pen);
+            if (ReferenceEquals(app.MainWindow, pen)) app.MainWindow = pens.FirstOrDefault();
+            pen.CompleteDeletion();
+        }
+        if (deletions.BlockedReason is { } blocked)
+            foreach (var window in pens) window.BlockTransferRecovery(blocked);
+        if (result.Error is { } error)
+        {
+            if (!result.Removed) pen.SetTransferStatus(error);
+            else MessageBox.Show(error, "PennCraft", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void OfferCreation(Rect region)
@@ -133,7 +163,7 @@ internal sealed class WorkspaceController : IDisposable
     internal async Task OfferOrganizationAsync()
     {
         await Task.WhenAll(pens.Select(pen => pen.ItemsReady));
-        if (disposed || transfers.BlockedReason is not null || pens.Any(pen => !pen.CanBeginTransfer(false))) return;
+        if (disposed || (deletions.BlockedReason ?? transfers.BlockedReason) is not null || pens.Any(pen => !pen.CanBeginTransfer(false))) return;
         if (!OrganizationOfferPolicy.IsEligible(pens.Select(pen => pen.TransferSnapshot())))
         {
             RearmOrganizationOffer();

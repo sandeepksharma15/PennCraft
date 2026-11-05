@@ -68,7 +68,7 @@
                         <Button Style="{StaticResource HeaderButton}" Content="☰" HorizontalAlignment="Left"
                                 Click="OpenMenu" ToolTip="Pen settings" AutomationProperties.Name="Pen settings"/>
                         <Button Style="{StaticResource HeaderButton}" Content="×" HorizontalAlignment="Right"
-                                Click="ClosePen" ToolTip="Hide Pen" AutomationProperties.Name="Hide Pen"/>
+                                Click="ClosePen" ToolTip="Close Pen (empty Pens are deleted)" AutomationProperties.Name="Close Pen"/>
                     </Grid>
                 </Border>
                 <Grid Grid.Row="1" Margin="8,0,8,8">

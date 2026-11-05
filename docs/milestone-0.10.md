@@ -57,3 +57,15 @@ Declining is remembered across restarts while the workspace remains empty/hidden
 7. Show a Pen, hide it again, exit and restart to verify the offer is re-armed.
 
 Automated tests cover eligibility exclusions, persisted dismissal and older workspace settings, read-only preview counts, plus existing incoming move/recovery behavior. The prompt and tray interaction remain manual Windows acceptance.
+
+## Closing an empty Pen
+
+The header × and a normal Windows close request now delete an ordinary Pen when both its saved membership and actual storage are empty. Its settings file, empty per-Pen Items directory, acknowledged empty moves journal and empty per-Pen metadata directory are removed; its workspace/tray entry is removed too. Other Pens, shared storage metadata and desktop files are retained.
+
+A Pen with any saved entry, including Recycle Bin or an unavailable reference, still hides on close. Folder Portals always hide on close, even when their linked folder is empty. Explicit Hide commands and normal application exit preserve Pens, including empty ones.
+
+Deletion is refused while item/recovery operations are active, if untracked files or unknown metadata remain, or if settings/storage cannot be verified. Linked/reparse paths are refused. Directory cleanup is non-recursive. A refused close leaves the Pen available with a status so its storage can be inspected.
+
+A durable deletion intent allows startup to finish an interrupted cleanup before opening windows. Unexpected contents or invalid records are retained and pause operations for review. A successfully deleted window suppresses later settings saves so closing cannot recreate its settings.
+
+To test: create an empty Pen, close ×, verify it disappears from the tray and stays absent after restart. Repeat with a disposable item and confirm close only hides the Pen. Check that closing an empty Portal preserves its connection. After deleting all ordinary Pens, exit through the tray and restart with supported desktop items to test the organization offer. Do not delete shared storage or settings manually.

@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private PenSettings settings;
     private DesktopSurface? surface;
     private bool exiting;
+    private bool deleted;
     private bool editing;
 
     public MainWindow() : this(new PenSettingsStore(Path.Combine(
@@ -57,11 +58,12 @@ public partial class MainWindow : Window
             DisposeItems();
             shellTimer.Stop();
             saveTimer.Stop();
-            SaveSettings();
+            if (!deleted) SaveSettings();
             surface?.Dispose();
         };
     }
 
+    internal Action<MainWindow>? DeleteEmptyRequested { get; set; }
     internal Task ItemsReady { get; }
     internal event EventHandler? SettingsSaved;
     internal string PenTitle => settings.Title;
@@ -98,7 +100,7 @@ public partial class MainWindow : Window
 
     private bool SaveSettings()
     {
-        if (transferBusy) return false;
+        if (transferBusy || deleted) return false;
         settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
         var saved = store.Save(settings);
         if (saved) SettingsSaved?.Invoke(this, EventArgs.Empty);
@@ -116,13 +118,34 @@ public partial class MainWindow : Window
         }
         if (exiting) return;
         e.Cancel = true;
+        Dispatcher.InvokeAsync(RequestClose);
+    }
+
+    private void ClosePen(object sender, RoutedEventArgs e) => RequestClose();
+
+    private void RequestClose()
+    {
+        if (deleted) return;
+        FinishEditing(commit: true);
+        if (!IsPortal && settings.ItemPaths.Length == 0 && DeleteEmptyRequested is { } remove)
+        {
+            remove(this);
+            return;
+        }
         HidePen();
     }
 
-    private void ClosePen(object sender, RoutedEventArgs e) => HidePen();
+    internal void CompleteDeletion()
+    {
+        deleted = true;
+        exiting = true;
+        saveTimer.Stop();
+        Close();
+    }
 
     internal void HidePen()
     {
+        if (deleted) return;
         FinishEditing(commit: true);
         settings = settings with { IsVisible = false };
         Hide();
@@ -132,6 +155,7 @@ public partial class MainWindow : Window
 
     internal void ShowPen()
     {
+        if (deleted) return;
         settings = settings with { IsVisible = true };
         Show();
         RefreshSurface();
@@ -140,6 +164,7 @@ public partial class MainWindow : Window
 
     internal void ResetPosition()
     {
+        if (deleted) return;
         var workArea = SystemParameters.WorkArea;
         Left = workArea.Left + 40;
         Top = workArea.Top + 40;
