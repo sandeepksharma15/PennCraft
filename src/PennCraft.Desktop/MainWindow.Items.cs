@@ -19,7 +19,7 @@ public partial class MainWindow
     private bool itemMovesBusy;
     private bool moveSettingsBlocked;
 
-    private async void InitializeItems()
+    private async Task InitializeItemsAsync()
     {
         ItemGrid.ItemsSource = items;
         itemRefreshTimer.Tick += RefreshWatchedItems;
@@ -158,6 +158,12 @@ public partial class MainWindow
             return;
         }
 
+        await MoveIncomingItemsAsync(paths);
+    }
+
+    internal async Task MoveIncomingItemsAsync(string[] paths)
+    {
+        if (!CanBeginTransfer(source: false)) return;
         itemMovesBusy = true;
         ItemStatus.Text = "Moving desktop items into the Pen…";
         try

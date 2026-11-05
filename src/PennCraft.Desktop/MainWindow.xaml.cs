@@ -34,7 +34,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         settings = store.Load();
         ApplySettings();
-        InitializeItems();
+        ItemsReady = InitializeItemsAsync();
         saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveSettings(); };
         LocationChanged += (_, _) => ScheduleSave();
         SizeChanged += (_, _) => ScheduleSave();
@@ -62,6 +62,8 @@ public partial class MainWindow : Window
         };
     }
 
+    internal Task ItemsReady { get; }
+    internal event EventHandler? SettingsSaved;
     internal string PenTitle => settings.Title;
     internal bool UserVisible => settings.IsVisible;
     internal bool CanExit => !itemMovesBusy && !itemDragActive && !itemMenuBusy && !itemReconciliationBusy && !transferBusy;
@@ -98,7 +100,9 @@ public partial class MainWindow : Window
     {
         if (transferBusy) return false;
         settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
-        return store.Save(settings);
+        var saved = store.Save(settings);
+        if (saved) SettingsSaved?.Invoke(this, EventArgs.Empty);
+        return saved;
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)
