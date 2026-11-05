@@ -9,7 +9,7 @@ internal enum ItemMenuAction { Cancel, ShellCommand, Rename, MoveToDesktop, Remo
 internal sealed record ItemMenuChoice(ItemMenuAction Action, uint CommandId = 0);
 
 /// <summary>STA-owned classic Windows shell menu for the item itself, including shortcut files.</summary>
-internal sealed class ShellContextMenu : IDisposable
+internal sealed partial class ShellContextMenu : IDisposable
 {
     private const uint FirstShellId = 1;
     private const uint LastShellId = 0x6FFF;
@@ -19,13 +19,13 @@ internal sealed class ShellContextMenu : IDisposable
     private readonly nint owner;
     private readonly bool managed;
     private readonly bool oleInitialized;
-    private nint pidl;
-    private nint menu;
-    private IShellFolder? parent;
-    private object? contextObject;
-    private IContextMenu? context;
-    private IContextMenu2? context2;
-    private IContextMenu3? context3;
+    private readonly nint pidl;
+    private readonly nint menu;
+    private readonly IShellFolder? parent;
+    private readonly object? contextObject;
+    private readonly IContextMenu? context;
+    private readonly IContextMenu2? context2;
+    private readonly IContextMenu3? context3;
     private bool disposed;
 
     internal int ShellCommandCount { get; private set; }
@@ -41,7 +41,17 @@ internal sealed class ShellContextMenu : IDisposable
         {
             Marshal.ThrowExceptionForHR(SHParseDisplayName(path, 0, out pidl, 0, out _));
             var folderId = typeof(IShellFolder).GUID;
-            Marshal.ThrowExceptionForHR(SHBindToParent(pidl, ref folderId, out parent, out var child));
+            nint parentPointer = 0;
+            nint child;
+            try
+            {
+                Marshal.ThrowExceptionForHR(SHBindToParent(pidl, ref folderId, out parentPointer, out child));
+                parent = (IShellFolder)Marshal.GetObjectForIUnknown(parentPointer);
+            }
+            finally
+            {
+                if (parentPointer != 0) Marshal.Release(parentPointer);
+            }
             var menuId = typeof(IContextMenu).GUID;
             Marshal.ThrowExceptionForHR(parent.GetUIObjectOf(owner, 1, [child], ref menuId, 0, out var pointer));
             try { contextObject = Marshal.GetObjectForIUnknown(pointer); }
@@ -170,6 +180,7 @@ internal sealed class ShellContextMenu : IDisposable
         public nint Icon;
     }
 
+    #pragma warning disable SYSLIB1096
     [ComImport, Guid("000214E6-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IShellFolder
     {
@@ -213,17 +224,32 @@ internal sealed class ShellContextMenu : IDisposable
         [PreserveSig] int HandleMenuMsg2(uint message, nint wParam, nint lParam, out nint result);
     }
 
-    [DllImport("ole32.dll")] private static extern int OleInitialize(nint reserved);
-    [DllImport("ole32.dll")] private static extern void OleUninitialize();
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHParseDisplayName(string path, nint bind, out nint item, uint mask, out uint attributes);
-    [DllImport("shell32.dll")] private static extern int SHBindToParent(nint item, ref Guid id, out IShellFolder parent, out nint child);
-    [DllImport("shell32.dll")] private static extern int SHOpenFolderAndSelectItems(nint item, uint count, nint children, uint flags);
-    [DllImport("user32.dll", SetLastError = true)] private static extern nint CreatePopupMenu();
-    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool AppendMenu(nint menu, uint flags, nuint id, string? label);
-    [DllImport("user32.dll")] private static extern uint TrackPopupMenuEx(nint menu, uint flags, int x, int y, nint owner, nint parameters);
-    [DllImport("user32.dll")] private static extern bool DestroyMenu(nint menu);
-    [DllImport("user32.dll")] private static extern bool SetForegroundWindow(nint hwnd);
-    [DllImport("user32.dll")] private static extern bool PostMessage(nint hwnd, uint message, nint wParam, nint lParam);
+    #pragma warning restore SYSLIB1096
+
+        [LibraryImport("ole32.dll")]
+        private static partial int OleInitialize(nint reserved);
+    [LibraryImport("ole32.dll")]
+    private static partial void OleUninitialize();
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int SHParseDisplayName(string path, nint bind, out nint item, uint mask, out uint attributes);
+    [LibraryImport("shell32.dll")]
+    private static partial int SHBindToParent(nint item, ref Guid id, out nint parent, out nint child);
+    [LibraryImport("shell32.dll")]
+    private static partial int SHOpenFolderAndSelectItems(nint item, uint count, nint children, uint flags);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial nint CreatePopupMenu();
+    [LibraryImport("user32.dll", EntryPoint = "AppendMenuW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool AppendMenu(nint menu, uint flags, nuint id, string? label);
+    [LibraryImport("user32.dll")]
+    private static partial uint TrackPopupMenuEx(nint menu, uint flags, int x, int y, nint owner, nint parameters);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DestroyMenu(nint menu);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetForegroundWindow(nint hwnd);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool PostMessage(nint hwnd, uint message, nint wParam, nint lParam);
 }

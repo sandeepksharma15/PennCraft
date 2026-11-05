@@ -7,7 +7,7 @@ using PennCraft.Desktop.Items;
 namespace PennCraft.Desktop.Windows;
 
 /// <summary>Bounded single-item CIDA parsing. Only the supported Recycle Bin name can escape this boundary.</summary>
-internal static class VirtualItemDrop
+internal static partial class VirtualItemDrop
 {
     internal const string Format = "Shell IDList Array";
 
@@ -54,7 +54,8 @@ internal static class VirtualItemDrop
         return null;
     }
 
-    [DllImport("shell32.dll")] private static extern uint ILGetSize(nint pidl);
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHParseDisplayName(string path, nint bind, out nint pidl, uint mask, out uint attributes);
+    [LibraryImport("shell32.dll")]
+    private static partial uint ILGetSize(nint pidl);
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int SHParseDisplayName(string path, nint bind, out nint pidl, uint mask, out uint attributes);
 }

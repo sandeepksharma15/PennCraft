@@ -6,7 +6,7 @@ using System.Windows.Threading;
 namespace PennCraft.Desktop.Windows;
 
 /// <summary>Observation only: every mouse event is forwarded, never captured or suppressed.</summary>
-internal sealed class DesktopCreationGesture : IDisposable
+internal sealed partial class DesktopCreationGesture : IDisposable
 {
     private readonly Dispatcher ui;
     private readonly Action<Rect> offer;
@@ -168,11 +168,17 @@ internal sealed class DesktopCreationGesture : IDisposable
     private delegate nint MouseCallback(int code, nint message, nint data);
     [StructLayout(LayoutKind.Sequential)]
     private struct MouseData { public ScreenPoint Point; public uint Mouse, Flags, Time; public nuint Extra; }
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern nint SetWindowsHookEx(int type, MouseCallback callback, nint module, uint thread);
-    [DllImport("user32.dll")] private static extern nint CallNextHookEx(nint hook, int code, nint message, nint data);
-    [DllImport("user32.dll")] private static extern bool UnhookWindowsHookEx(nint hook);
-    [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern nint GetModuleHandle(string? name);
-    [DllImport("user32.dll")] private static extern nint SetThreadDpiAwarenessContext(nint context);
+    [LibraryImport("user32.dll", EntryPoint = "SetWindowsHookExW", SetLastError = true)]
+    private static partial nint SetWindowsHookEx(int type, MouseCallback callback, nint module, uint thread);
+    [LibraryImport("user32.dll")]
+    private static partial nint CallNextHookEx(nint hook, int code, nint message, nint data);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool UnhookWindowsHookEx(nint hook);
+    [LibraryImport("user32.dll")]
+    private static partial short GetAsyncKeyState(int key);
+    [LibraryImport("kernel32.dll", EntryPoint = "GetModuleHandleW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial nint GetModuleHandle(string? name);
+    [LibraryImport("user32.dll")]
+    private static partial nint SetThreadDpiAwarenessContext(nint context);
 }

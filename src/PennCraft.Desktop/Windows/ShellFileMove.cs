@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace PennCraft.Desktop.Windows;
 
 /// <summary>Runs the Windows file-operation UI on a dedicated STA, without suppressing prompts.</summary>
-internal static class ShellFileMove
+internal static partial class ShellFileMove
 {
     internal static Task<T> OnSta<T>(Func<T> action)
     {
@@ -29,9 +29,21 @@ internal static class ShellFileMove
         {
             operationObject = Activator.CreateInstance(Type.GetTypeFromCLSID(new("3AD05575-8857-4850-9277-11B85BDB8E09"))!)!;
             var operation = (IFileOperation)operationObject;
-            var itemId = new Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE");
-            Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(source, 0, ref itemId, out sourceItem));
-            Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(Path.GetDirectoryName(destination)!, 0, ref itemId, out targetFolder));
+            Guid itemId = new("43826D1E-E718-42EE-BC55-A1E261C37BFE");
+            nint sourcePointer = 0;
+            nint folderPointer = 0;
+            try
+            {
+                Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(source, 0, ref itemId, out sourcePointer));
+                sourceItem = (IShellItem)Marshal.GetObjectForIUnknown(sourcePointer);
+                Marshal.ThrowExceptionForHR(SHCreateItemFromParsingName(Path.GetDirectoryName(destination)!, 0, ref itemId, out folderPointer));
+                targetFolder = (IShellItem)Marshal.GetObjectForIUnknown(folderPointer);
+            }
+            finally
+            {
+                if (folderPointer != 0) Marshal.Release(folderPointer);
+                if (sourcePointer != 0) Marshal.Release(sourcePointer);
+            }
             operation.SetOwnerWindow(owner);
             operation.SetOperationFlags(0x00040000); // Windows owns progress, cancellation, conflicts and permission UI.
             operation.MoveItem(sourceItem, targetFolder, Path.GetFileName(destination), 0);
@@ -48,6 +60,7 @@ internal static class ShellFileMove
         }
     }
 
+    #pragma warning disable SYSLIB1096
     [ComImport, Guid("947AAB5F-0A5C-4C13-B4D6-4BF7836FC9F8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IFileOperation
     {
@@ -84,9 +97,13 @@ internal static class ShellFileMove
         void Compare(IShellItem other, uint hint, out int order);
     }
 
-    [DllImport("ole32.dll")] private static extern int OleInitialize(nint reserved);
-    [DllImport("ole32.dll")] private static extern void OleUninitialize();
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHCreateItemFromParsingName(string path, nint bind, ref Guid id,
-        out IShellItem item);
+    #pragma warning restore SYSLIB1096
+
+        [LibraryImport("ole32.dll")]
+        private static partial int OleInitialize(nint reserved);
+    [LibraryImport("ole32.dll")]
+    private static partial void OleUninitialize();
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int SHCreateItemFromParsingName(string path, nint bind, ref Guid id,
+        out nint item);
 }

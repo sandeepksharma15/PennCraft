@@ -8,7 +8,7 @@ using Xunit;
 
 namespace PennCraft.Desktop.Tests;
 
-public sealed class RecycleBinTests
+public sealed partial class RecycleBinTests
 {
     [Fact]
     public void NamespaceMembershipIsAllowlistedAndSurvivesPersistenceAndReconciliation()
@@ -152,11 +152,14 @@ public sealed class RecycleBinTests
         }));
     }
 
-    [DllImport("ole32.dll")] private static extern int OleInitialize(nint reserved);
-    [DllImport("ole32.dll")] private static extern void OleUninitialize();
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHParseDisplayName(string path, nint bind, out nint pidl, uint mask, out uint attributes);
-    [DllImport("shell32.dll")] private static extern uint ILGetSize(nint pidl);
+    [LibraryImport("ole32.dll")]
+    private static partial int OleInitialize(nint reserved);
+    [LibraryImport("ole32.dll")]
+    private static partial void OleUninitialize();
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int SHParseDisplayName(string path, nint bind, out nint pidl, uint mask, out uint attributes);
+    [LibraryImport("shell32.dll")]
+    private static partial uint ILGetSize(nint pidl);
 
     private static void WithVisibility(Action<RecycleBinVisibility, FakeSetting, string> action)
     {

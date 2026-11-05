@@ -16,7 +16,9 @@ public class DesktopSurfaceTests
             {
                 using var source = new HwndSource(new HwndSourceParameters("PennCraft CI test")
                 {
-                    Width = 240, Height = 160, WindowStyle = unchecked((int)0x80000000)
+                    Width = 240,
+                    Height = 160,
+                    WindowStyle = unchecked((int)0x80000000)
                 });
                 var foreground = Native.GetForegroundWindow();
                 using var surface = new DesktopSurface(source.Handle);
@@ -46,8 +48,10 @@ public class DesktopSurfaceTests
                 }
             }
             catch (Exception exception) { failure = exception; }
-        });
-        thread.IsBackground = true;
+        })
+        {
+            IsBackground = true
+        };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         Assert.True(thread.Join(TimeSpan.FromSeconds(15)), "Native test did not finish.");

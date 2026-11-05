@@ -14,7 +14,7 @@ internal interface IDesktopIconSetting
     void Refresh();
 }
 
-internal sealed class DesktopIconSetting : IDesktopIconSetting
+internal sealed partial class DesktopIconSetting : IDesktopIconSetting
 {
     private const string Root = @"Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\";
     private const string Name = "{645FF040-5081-101B-9F08-00AA002F954E}";
@@ -35,7 +35,8 @@ internal sealed class DesktopIconSetting : IDesktopIconSetting
     }
 
     public void Refresh() => SHChangeNotify(0x08000000, 0, 0, 0);
-    [DllImport("shell32.dll")] private static extern void SHChangeNotify(uint change, uint flags, nint first, nint second);
+    [LibraryImport("shell32.dll")]
+    private static partial void SHChangeNotify(uint change, uint flags, nint first, nint second);
 }
 
 internal sealed record RecycleBinBaseline([property: JsonRequired] int Version,

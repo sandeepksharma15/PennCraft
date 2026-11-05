@@ -14,7 +14,7 @@ internal struct ScreenPoint(int x, int y)
 }
 
 /// <summary>Physical-pixel shell geometry. All queries are read-only.</summary>
-internal static class DesktopGeometry
+internal static partial class DesktopGeometry
 {
     public static string ClassName(nint hwnd)
     {
@@ -54,7 +54,7 @@ internal static class DesktopGeometry
 
     public static Rect[] Obstacles()
     {
-        var result = new List<Rect>();
+        List<Rect> result = [];
         Native.GetWindowThreadProcessId(Native.GetShellWindow(), out var shellProcess);
         EnumWindows((hwnd, _) =>
         {
@@ -86,15 +86,24 @@ internal static class DesktopGeometry
     [StructLayout(LayoutKind.Sequential)]
     private struct NativeRect { public int Left, Top, Right, Bottom; }
     private delegate bool WindowCallback(nint hwnd, nint value);
-    [DllImport("user32.dll")] private static extern bool EnumWindows(WindowCallback callback, nint value);
-    [DllImport("user32.dll")] private static extern nint GetAncestor(nint hwnd, uint flags);
-    [DllImport("user32.dll")] private static extern nint WindowFromPoint(ScreenPoint point);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool EnumWindows(WindowCallback callback, nint value);
+    [LibraryImport("user32.dll")]
+    private static partial nint GetAncestor(nint hwnd, uint flags);
+    [LibraryImport("user32.dll")]
+    private static partial nint WindowFromPoint(ScreenPoint point);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int GetClassName(nint hwnd, StringBuilder text, int maximum);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    private static extern nint FindWindowEx(nint parent, nint after, string className, string? title);
-    [DllImport("user32.dll")] private static extern bool GetWindowRect(nint hwnd, out NativeRect rect);
-    [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(nint hwnd, int attribute, out int value, int size);
-    [DllImport("user32.dll")] private static extern nint MonitorFromPoint(ScreenPoint point, uint flags);
-    [DllImport("shcore.dll")] private static extern int GetDpiForMonitor(nint monitor, int type, out uint x, out uint y);
+    [LibraryImport("user32.dll", EntryPoint = "FindWindowExW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial nint FindWindowEx(nint parent, nint after, string className, string? title);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetWindowRect(nint hwnd, out NativeRect rect);
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmGetWindowAttribute(nint hwnd, int attribute, out int value, int size);
+    [LibraryImport("user32.dll")]
+    private static partial nint MonitorFromPoint(ScreenPoint point, uint flags);
+    [LibraryImport("shcore.dll")]
+    private static partial int GetDpiForMonitor(nint monitor, int type, out uint x, out uint y);
 }

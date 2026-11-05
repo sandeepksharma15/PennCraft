@@ -1,4 +1,3 @@
-using System.IO;
 using System.Windows.Interop;
 using PennCraft.Desktop.Windows;
 using Xunit;
@@ -21,7 +20,9 @@ public sealed class ShellContextMenuTests
             {
                 using var source = new HwndSource(new HwndSourceParameters("PennCraft menu CI")
                 {
-                    Width = 100, Height = 100, WindowStyle = unchecked((int)0x80000000)
+                    Width = 100,
+                    Height = 100,
+                    WindowStyle = unchecked((int)0x80000000)
                 });
                 using var menu = new ShellContextMenu(path, source.Handle, managed: false);
                 Assert.True(menu.ShellCommandCount > 0);
@@ -30,8 +31,10 @@ public sealed class ShellContextMenuTests
                 Assert.Throws<ArgumentOutOfRangeException>(() => menu.Invoke(0));
             }
             catch (Exception exception) { failure = exception; }
-        });
-        thread.IsBackground = true;
+        })
+        {
+            IsBackground = true
+        };
         thread.SetApartmentState(ApartmentState.STA);
         try
         {

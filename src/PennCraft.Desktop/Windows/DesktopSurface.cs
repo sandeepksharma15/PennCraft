@@ -7,7 +7,7 @@ namespace PennCraft.Desktop.Windows;
 /// <summary>Independent top-level HWND; never parents to or modifies an Explorer window.</summary>
 internal sealed class DesktopSurface : IDisposable
 {
-    private static readonly object BandGate = new();
+    private static readonly System.Threading.Lock BandGate = new();
     private static readonly List<DesktopSurface> Surfaces = [];
     private readonly nint hwnd;
     private readonly HwndSource source;
@@ -96,8 +96,8 @@ internal sealed class DesktopSurface : IDisposable
             var active = Surfaces.Where(surface => Native.IsWindowVisible(surface.hwnd) && !Native.IsIconic(surface.hwnd))
                 .Reverse().ToArray(); // Newer Pens remain above older Pens.
             if (active.Length == 0) return true;
-            var windows = new List<DesktopBandWindow>();
-            var visited = new HashSet<nint>();
+            List<DesktopBandWindow> windows = [];
+            HashSet<nint> visited = [];
             for (var window = Native.GetTopWindow(0); window != 0 && visited.Add(window); window = Native.GetWindow(window, 2))
             {
                 if (!Native.IsWindowVisible(window) || Native.IsIconic(window)) continue;
@@ -105,7 +105,7 @@ internal sealed class DesktopSurface : IDisposable
                 Native.GetClassName(window, name, name.Capacity);
                 windows.Add(new(window, name.ToString() is "Progman" or "WorkerW"));
             }
-            if (!DesktopBandPolicy.NeedsRepair(active.Select(surface => surface.hwnd).ToArray(), [.. windows])) return true;
+            if (!DesktopBandPolicy.NeedsRepair([.. active.Select(surface => surface.hwnd)], [.. windows])) return true;
             // Commit all changes together so repair itself cannot expose intermediate overlap order.
             var batch = Native.BeginDeferWindowPos(active.Length);
             if (batch == 0) return false;
@@ -126,34 +126,55 @@ internal sealed class DesktopSurface : IDisposable
     }
 }
 
-internal static class Native
+internal static partial class Native
 {
-    [DllImport("user32.dll")] internal static extern nint GetTopWindow(nint hwnd);
-    [DllImport("user32.dll")] internal static extern nint GetWindow(nint hwnd, uint command);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern int GetClassName(nint hwnd, System.Text.StringBuilder text, int maximum);
-    [DllImport("user32.dll", SetLastError = true)] internal static extern nint BeginDeferWindowPos(int count);
-    [DllImport("user32.dll", SetLastError = true)] internal static extern nint DeferWindowPos(nint batch, nint hwnd, nint after, int x, int y, int width, int height, uint flags);
-    [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool EndDeferWindowPos(nint batch);
-    [DllImport("user32.dll")] internal static extern nint GetParent(nint hwnd);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern nint SendMessage(nint hwnd, uint message, nint wParam, nint lParam);
-    [DllImport("user32.dll")] internal static extern nint GetShellWindow();
-    [DllImport("user32.dll")] internal static extern nint GetForegroundWindow();
-    [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint hwnd, out uint process);
-    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool IsWindowVisible(nint hwnd);
-    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool IsIconic(nint hwnd);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern uint RegisterWindowMessage(string message);
-    [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool SetWindowPos(nint hwnd, nint after, int x, int y, int width, int height, uint flags);
-    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool ShowWindow(nint hwnd, int command);
-    [DllImport("kernel32.dll")] internal static extern void SetLastError(uint error);
-    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern nint GetLong64(nint hwnd, int index);
-    [DllImport("user32.dll", EntryPoint = "GetWindowLongW")] private static extern int GetLong32(nint hwnd, int index);
-    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)] private static extern nint SetLong64(nint hwnd, int index, nint value);
-    [DllImport("user32.dll", EntryPoint = "SetWindowLongW", SetLastError = true)] private static extern int SetLong32(nint hwnd, int index, int value);
+    [LibraryImport("user32.dll")]
+    internal static partial nint GetTopWindow(nint hwnd);
+    [LibraryImport("user32.dll")]
+    internal static partial nint GetWindow(nint hwnd, uint command);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    internal static extern int GetClassName(nint hwnd, System.Text.StringBuilder text, int maximum);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    internal static partial nint BeginDeferWindowPos(int count);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    internal static partial nint DeferWindowPos(nint batch, nint hwnd, nint after, int x, int y, int width, int height, uint flags);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool EndDeferWindowPos(nint batch);
+    [LibraryImport("user32.dll")]
+    internal static partial nint GetParent(nint hwnd);
+    [LibraryImport("user32.dll", EntryPoint = "SendMessageW", StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial nint SendMessage(nint hwnd, uint message, nint wParam, nint lParam);
+    [LibraryImport("user32.dll")]
+    internal static partial nint GetShellWindow();
+    [LibraryImport("user32.dll")]
+    internal static partial nint GetForegroundWindow();
+    [LibraryImport("user32.dll")]
+    internal static partial uint GetWindowThreadProcessId(nint hwnd, out uint process);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool IsWindowVisible(nint hwnd);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool IsIconic(nint hwnd);
+    [LibraryImport("user32.dll", EntryPoint = "RegisterWindowMessageW", StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial uint RegisterWindowMessage(string message);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool SetWindowPos(nint hwnd, nint after, int x, int y, int width, int height, uint flags);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool ShowWindow(nint hwnd, int command);
+    [LibraryImport("kernel32.dll")]
+    internal static partial void SetLastError(uint error);
+    [LibraryImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static partial nint GetLong64(nint hwnd, int index);
+    [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
+    private static partial int GetLong32(nint hwnd, int index);
+    [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    private static partial nint SetLong64(nint hwnd, int index, nint value);
+    [LibraryImport("user32.dll", EntryPoint = "SetWindowLongW", SetLastError = true)]
+    private static partial int SetLong32(nint hwnd, int index, int value);
     internal static nint GetWindowLongPtr(nint hwnd, int index) => nint.Size == 8 ? GetLong64(hwnd, index) : GetLong32(hwnd, index);
     internal static nint SetWindowLongPtr(nint hwnd, int index, nint value) => nint.Size == 8 ? SetLong64(hwnd, index, value) : SetLong32(hwnd, index, (int)value);
 }

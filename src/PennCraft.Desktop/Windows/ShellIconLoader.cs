@@ -1,16 +1,16 @@
 using System.Collections.Concurrent;
-using PennCraft.Desktop.Items;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using PennCraft.Desktop.Items;
 
 namespace PennCraft.Desktop.Windows;
 
 /// <summary>Serial STA shell requests keep slow icon handlers off the WPF dispatcher.</summary>
-internal sealed class ShellIconLoader : IDisposable
+internal sealed partial class ShellIconLoader : IDisposable
 {
-    private readonly BlockingCollection<Request> requests = new();
+    private readonly BlockingCollection<Request> requests = [];
     private readonly Thread worker;
     private bool disposed;
 
@@ -88,27 +88,29 @@ internal sealed class ShellIconLoader : IDisposable
     private sealed record Request(string Path, TaskCompletionSource<BitmapSource?> Completion);
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct ShellFileInfo
+    private unsafe struct ShellFileInfo
     {
         public nint Icon;
         public int IconIndex;
         public uint Attributes;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string DisplayName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)] public string TypeName;
+        public fixed char DisplayName[260];
+        public fixed char TypeName[80];
     }
 
-    [DllImport("ole32.dll")] private static extern int CoInitializeEx(nint reserved, uint flags);
-    [DllImport("ole32.dll")] private static extern void CoUninitialize();
+    [LibraryImport("ole32.dll")]
+    private static partial int CoInitializeEx(nint reserved, uint flags);
+    [LibraryImport("ole32.dll")]
+    private static partial void CoUninitialize();
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern nint SHGetFileInfo(string path, uint attributes, ref ShellFileInfo info, uint size, uint flags);
+    [LibraryImport("shell32.dll", EntryPoint = "SHGetFileInfoW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial nint SHGetFileInfo(string path, uint attributes, ref ShellFileInfo info, uint size, uint flags);
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    private static extern int SHParseDisplayName(string path, nint bind, out nint pidl, uint mask, out uint attributes);
-    [DllImport("shell32.dll", EntryPoint = "SHGetFileInfoW")]
-    private static extern nint SHGetFileInfo(nint pidl, uint attributes, ref ShellFileInfo info, uint size, uint flags);
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int SHParseDisplayName(string path, nint bind, out nint pidl, uint mask, out uint attributes);
+    [LibraryImport("shell32.dll", EntryPoint = "SHGetFileInfoW")]
+    private static partial nint SHGetFileInfo(nint pidl, uint attributes, ref ShellFileInfo info, uint size, uint flags);
 
-    [DllImport("user32.dll")]
+    [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool DestroyIcon(nint icon);
+    private static partial bool DestroyIcon(nint icon);
 }

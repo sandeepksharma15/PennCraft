@@ -8,7 +8,7 @@ public partial class MainWindow
     internal async Task MoveSharedShortcutsAsync(string[] paths, bool confirmed = false)
     {
         if (IsPortal || !CanBeginTransfer(false) || Transfers is null) return;
-        paths = paths.Where(path => SharedDesktopShortcut.Is(path)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        paths = [.. paths.Where(path => SharedDesktopShortcut.Is(path)).Distinct(StringComparer.OrdinalIgnoreCase)];
         if (paths.Length == 0) return;
         if (!confirmed)
         {

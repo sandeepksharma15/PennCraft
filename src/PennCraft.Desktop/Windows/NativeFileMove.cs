@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 namespace PennCraft.Desktop.Windows;
 
 /// <summary>Same-volume, no-overwrite rename and persistent identity queries. No copy/delete fallback.</summary>
-internal static class NativeFileMove
+internal static partial class NativeFileMove
 {
     public static string Identity(string path)
     {
@@ -46,15 +46,15 @@ internal static class NativeFileMove
         public uint IndexLow;
     }
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "CreateFileW")]
-    private static extern SafeFileHandle CreateFile(string name, uint access, uint share,
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial SafeFileHandle CreateFile(string name, uint access, uint share,
         nint security, uint creation, uint flags, nint template);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out FileInformation information);
+    private static partial bool GetFileInformationByHandle(SafeFileHandle handle, out FileInformation information);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "MoveFileExW")]
+    [LibraryImport("kernel32.dll", EntryPoint = "MoveFileExW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool MoveFileEx(string source, string destination, uint flags);
+    private static partial bool MoveFileEx(string source, string destination, uint flags);
 }

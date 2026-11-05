@@ -165,7 +165,7 @@ public partial class MainWindow
     {
         if (!CanBeginTransfer(source: false)) return;
         var shared = paths.Where(path => SharedDesktopShortcut.Is(path)).ToArray();
-        paths = paths.Where(path => !SharedDesktopShortcut.Is(path)).ToArray();
+        paths = [.. paths.Where(path => !SharedDesktopShortcut.Is(path))];
         if (shared.Length != 0)
         {
             await MoveSharedShortcutsAsync(shared, sharedMoveConfirmed);

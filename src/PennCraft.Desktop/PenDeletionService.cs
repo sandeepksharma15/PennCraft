@@ -81,8 +81,11 @@ internal sealed class PenDeletionService(WorkspaceStore workspace, string deskto
         File.Delete(workspace.SettingsPath(id));
         checkpoint?.Invoke(DeletionCheckpoint.SettingsRemoved);
         var index = workspace.Load();
-        workspace.Save(index with { PenIds = index.PenIds.Where(item =>
-            !string.Equals(item, id, StringComparison.OrdinalIgnoreCase)).ToArray() });
+        workspace.Save(index with
+        {
+            PenIds = [.. index.PenIds.Where(item =>
+            !string.Equals(item, id, StringComparison.OrdinalIgnoreCase))]
+        });
         indexRemoved();
     }
 

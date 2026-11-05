@@ -6,7 +6,7 @@ using Xunit;
 
 namespace PennCraft.Desktop.Tests;
 
-public sealed class ItemTrackingTests
+public sealed partial class ItemTrackingTests
 {
     [Fact]
     public void RenamedItemFollowsItsIdentityAndSurvivesRestart()
@@ -210,7 +210,7 @@ public sealed class ItemTrackingTests
         finally { Directory.Delete(root, recursive: true); }
     }
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "CreateHardLinkW", SetLastError = true)]
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateHardLinkW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool CreateHardLink(string name, string existing, nint security);
+    private static partial bool CreateHardLink(string name, string existing, nint security);
 }

@@ -37,5 +37,5 @@ public static class PenMembership
         Normalize(current.Concat(Normalize(dropped).Where(Exists)));
 
     public static string[] Remove(IEnumerable<string> current, string path) =>
-        current.Where(item => !StringComparer.OrdinalIgnoreCase.Equals(item, path)).ToArray();
+        [.. current.Where(item => !StringComparer.OrdinalIgnoreCase.Equals(item, path))];
 }
