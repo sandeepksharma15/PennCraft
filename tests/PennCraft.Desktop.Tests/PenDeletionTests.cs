@@ -11,6 +11,14 @@ public sealed class PenDeletionTests
     public void DeletesOnlyEmptyPenMetadataAndRetainsDesktopItemsAndOtherPens()
     {
         using var fixture = new Fixture();
+        var into = fixture.Moves.MoveInto(Path.Combine(fixture.Desktop, "Keep.txt"));
+        Assert.True(into.Moved, into.Error);
+        Assert.True(fixture.Store.Save(new PenSettings { ItemPaths = [into.Destination] }));
+        Assert.Null(fixture.Moves.Acknowledge([into.OperationId!.Value]));
+        var back = fixture.Moves.MoveOut(into.Destination);
+        Assert.True(back.Moved, back.Error);
+        Assert.True(fixture.Store.Save(new PenSettings()));
+        Assert.Null(fixture.Moves.Acknowledge([back.OperationId!.Value]));
         var result = fixture.Service.Delete("Default");
         Assert.True(result.Removed, result.Error);
         Assert.Null(result.Error);
