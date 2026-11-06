@@ -72,9 +72,7 @@ internal sealed partial class WorkspaceController
             var layout = savedLayouts.Load().SingleOrDefault(layout => layout.Id == id)
                 ?? throw new InvalidOperationException("The saved layout no longer exists.");
             var stamp = DesktopGeometry.DisplayLayoutStamp();
-            var areas = System.Windows.Forms.Screen.AllScreens.Select(screen => new Rect(
-                screen.WorkingArea.X, screen.WorkingArea.Y, screen.WorkingArea.Width, screen.WorkingArea.Height)).ToArray();
-            var plan = SavedLayoutPlanner.Plan(layout, stamp, pens.Select(pen => pen.PenId), areas);
+            var plan = SavedLayoutPlanner.Plan(layout, stamp, pens.Select(pen => pen.PenId), MonitorWorkAreas());
             if (plan.Error is { } error) { MessageBox.Show(error, "PennCraft"); return; }
             var before = ApplySavedLayout(plan.Pens, stamp);
             if (before is null) return;
@@ -105,7 +103,10 @@ internal sealed partial class WorkspaceController
                 MessageBox.Show("The monitor setup changed. The previous presentation was left unchanged.", "PennCraft");
                 return;
             }
-            if (ApplySavedLayout(undoSavedLayout!, undoSavedDisplayStamp!) is not null) undoSavedLayout = null;
+            var previous = new SavedLayout(Guid.NewGuid().ToString("N"), "Undo", undoSavedDisplayStamp!, undoSavedLayout!);
+            var plan = SavedLayoutPlanner.Plan(previous, undoSavedDisplayStamp!, pens.Select(pen => pen.PenId), MonitorWorkAreas());
+            if (plan.Error is { } error) { MessageBox.Show(error, "PennCraft"); return; }
+            if (ApplySavedLayout(plan.Pens, undoSavedDisplayStamp!) is not null) undoSavedLayout = null;
         }
         catch (Exception exception) when (SavedLayoutTransaction.Expected(exception))
         {
@@ -113,6 +114,9 @@ internal sealed partial class WorkspaceController
         }
         finally { layoutBusy = false; }
     }
+
+    private static Rect[] MonitorWorkAreas() => System.Windows.Forms.Screen.AllScreens.Select(screen => new Rect(
+        screen.WorkingArea.X, screen.WorkingArea.Y, screen.WorkingArea.Width, screen.WorkingArea.Height)).ToArray();
 
     private Dictionary<string, LayoutPresentation>? ApplySavedLayout(Dictionary<string, LayoutPresentation> target, string displayStamp)
     {

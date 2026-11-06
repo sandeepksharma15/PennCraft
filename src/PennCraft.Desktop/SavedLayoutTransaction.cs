@@ -23,7 +23,6 @@ internal sealed class SavedLayoutTransaction(WorkspaceStore workspace)
             {
                 var before = Read();
                 if (before is null) return null;
-                journalChecked = true;
                 Validate(before);
                 Save(before);
                 Write(null);
@@ -47,6 +46,7 @@ internal sealed class SavedLayoutTransaction(WorkspaceStore workspace)
             {
                 if (BlockedReason is not null) return false;
                 if (Read() is not null) throw new InvalidDataException("A restore needs recovery.");
+                journalChecked = true;
                 Validate(before);
                 Save(before);
                 Write(before);
