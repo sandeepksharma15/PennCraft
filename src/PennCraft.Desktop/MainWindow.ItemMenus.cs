@@ -36,6 +36,7 @@ public partial class MainWindow
     private async void ItemContextKey(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != Key.Apps && !(e.Key == Key.F10 && Keyboard.Modifiers == ModifierKeys.Shift)) return;
+        if (editing) return; // Keep the title editor's own keyboard context menu.
         var selected = items.FirstOrDefault(item => item.IsSelected);
         e.Handled = true;
         if (selected is null || settings.IsFolded) { ShowPenMenu(this); return; }

@@ -91,7 +91,7 @@ public sealed class PenViewTests
             window.ReleaseTransfer();
             large.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             Assert.Equal(1.5, window.ItemScale);
-            Assert.Single(Find(Find(window.BuildPenMenu(), "View"), "Item size").Items.OfType<MenuItem>().Where(item => item.IsChecked));
+            Assert.Single(Find(Find(window.BuildPenMenu(), "View"), "Item size").Items.OfType<MenuItem>(), item => item.IsChecked);
             Assert.False(Find(Find(window.BuildPenMenu(), "Layout"), "Undo last automatic layout").IsEnabled);
             Assert.False(Find(window.BuildPenMenu(), "Delete Pen…").IsEnabled);
             Assert.False(window.SetItemScale(9));
