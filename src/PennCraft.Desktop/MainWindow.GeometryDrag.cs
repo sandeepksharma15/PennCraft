@@ -24,7 +24,7 @@ public partial class MainWindow
         try
         {
             saveTimer.Stop();
-            geometryOriginal = geometryFallback ?? TransferSnapshot();
+            geometryOriginal = TransferSnapshot();
             geometryGesture = new(DesktopGeometry.Bounds(this), DesktopGeometry.CursorPosition(), thumb.Tag as string,
                 VisualTreeHelper.GetDpi(this).DpiScaleX);
             geometryThumb = thumb;
@@ -89,15 +89,6 @@ public partial class MainWindow
         }
         SaveSettings();
         geometryOriginal = null;
-    }
-
-    internal PenSettings GeometryPersistenceSnapshot()
-    {
-        var snapshot = TransferSnapshot();
-        return geometryFallback is { } saved ? snapshot with
-        {
-            Left = saved.Left, Top = saved.Top, Width = saved.Width, Height = saved.Height
-        } : snapshot;
     }
 
     internal void RetainGeometryAfterRestoreFailure(PenSettings previous)

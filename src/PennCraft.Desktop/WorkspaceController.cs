@@ -329,7 +329,7 @@ internal sealed class WorkspaceController : IDisposable
         var committed = false;
         try
         {
-            var before = selected.ToDictionary(pen => pen.PenId, pen => pen.GeometryPersistenceSnapshot());
+            var before = selected.ToDictionary(pen => pen.PenId, pen => pen.TransferSnapshot());
             committed = layouts.Execute(before, () =>
             {
                 foreach (var pen in selected) pen.ApplyLayoutBounds(bounds[pen.PenId]);

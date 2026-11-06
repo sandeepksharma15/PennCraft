@@ -60,6 +60,8 @@ public sealed class PenLayoutWindowTests
                     window.Left += 30;
                     window.Width += 24; // Model partial native bounds after a failed cancellation restore.
                     window.RetainGeometryAfterRestoreFailure(saved);
+                    Assert.Equal(saved.Left, window.TransferSnapshot().Left);
+                    Assert.Equal(saved.Width, window.TransferSnapshot().Width);
                     window.HidePen(); // Later metadata saves must preserve the previous saved geometry.
                     var retained = new PenSettingsStore(file).Load();
                     Assert.Equal(saved.Left, retained.Left);

@@ -103,12 +103,7 @@ public partial class MainWindow : Window
     private bool SaveSettings()
     {
         if (transferBusy || deleted) return false;
-        var geometry = geometryFallback;
-        settings = settings with
-        {
-            Left = geometry?.Left ?? Left, Top = geometry?.Top ?? Top,
-            Width = geometry?.Width ?? Width, Height = geometry?.Height ?? Height
-        };
+        settings = TransferSnapshot();
         var saved = store.Save(settings);
         if (saved) SettingsSaved?.Invoke(this, EventArgs.Empty);
         return saved;

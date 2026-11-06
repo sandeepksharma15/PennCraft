@@ -15,7 +15,16 @@ public partial class MainWindow
         && !moveSettingsBlocked && !itemMovesBusy && !itemMenuBusy && !itemReconciliationBusy
         && (source || !itemDragActive) && (IsPortal || moves is { HasUnresolvedMoves: false });
 
-    internal PenSettings TransferSnapshot() => settings with { Left = Left, Top = Top, Width = Width, Height = Height };
+    internal PenSettings TransferSnapshot()
+    {
+        // Every durable workflow must retain the known-good bounds after a failed cancellation restore.
+        var geometry = geometryFallback;
+        return settings with
+        {
+            Left = geometry?.Left ?? Left, Top = geometry?.Top ?? Top,
+            Width = geometry?.Width ?? Width, Height = geometry?.Height ?? Height
+        };
+    }
 
     internal void ReserveTransfer()
     {
