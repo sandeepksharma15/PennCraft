@@ -249,7 +249,7 @@ internal sealed partial class ShellContextMenu : IDisposable
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetForegroundWindow(nint hwnd);
-    [LibraryImport("user32.dll")]
+    [LibraryImport("user32.dll", EntryPoint = "PostMessageW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool PostMessage(nint hwnd, uint message, nint wParam, nint lParam);
 }
