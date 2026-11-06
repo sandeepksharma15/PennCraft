@@ -91,6 +91,15 @@ public partial class MainWindow
         geometryOriginal = null;
     }
 
+    internal PenSettings GeometryPersistenceSnapshot()
+    {
+        var snapshot = TransferSnapshot();
+        return geometryFallback is { } saved ? snapshot with
+        {
+            Left = saved.Left, Top = saved.Top, Width = saved.Width, Height = saved.Height
+        } : snapshot;
+    }
+
     internal void RetainGeometryAfterRestoreFailure(PenSettings previous)
     {
         geometryFallback = previous;

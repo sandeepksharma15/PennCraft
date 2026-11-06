@@ -14,6 +14,7 @@ public partial class MainWindow
         && ItemsReady.IsCompletedSuccessfully && moves?.HasUnresolvedMoves != true;
     private bool resumeItemRefresh;
     private bool resumeSave;
+    private PenSettings? layoutPriorGeometryFallback;
 
     internal PenLayoutItem MeasureLayoutItem(double width)
     {
@@ -26,6 +27,7 @@ public partial class MainWindow
     internal void BeginLayout()
     {
         FinishEditing(commit: true);
+        layoutPriorGeometryFallback = geometryFallback;
         resumeSave = saveTimer.IsEnabled;
         resumeItemRefresh = itemRefreshTimer.IsEnabled;
         saveTimer.Stop();
@@ -33,8 +35,10 @@ public partial class MainWindow
         transferBusy = true;
     }
 
-    internal void EndLayout()
+    internal void EndLayout(bool committed = true)
     {
+        if (!committed) geometryFallback = layoutPriorGeometryFallback;
+        layoutPriorGeometryFallback = null;
         transferBusy = false;
         saveTimer.Stop();
         if (resumeSave) saveTimer.Start();

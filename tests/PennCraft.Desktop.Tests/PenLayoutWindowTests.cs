@@ -56,6 +56,18 @@ public sealed class PenLayoutWindowTests
                     finally { window.EndLayout(); }
                     Assert.Equal(oldBounds, DesktopGeometry.Bounds(window));
                     Assert.All(paths, path => Assert.Equal("keep", File.ReadAllText(path)));
+                    var saved = new PenSettingsStore(file).Load();
+                    window.Left += 30;
+                    window.Width += 24; // Model partial native bounds after a failed cancellation restore.
+                    window.RetainGeometryAfterRestoreFailure(saved);
+                    window.HidePen(); // Later metadata saves must preserve the previous saved geometry.
+                    var retained = new PenSettingsStore(file).Load();
+                    Assert.Equal(saved.Left, retained.Left);
+                    Assert.Equal(saved.Top, retained.Top);
+                    Assert.Equal(saved.Width, retained.Width);
+                    Assert.Equal(saved.Height, retained.Height);
+                    Assert.False(retained.IsVisible);
+                    Assert.Equal(saved.ItemPaths, retained.ItemPaths);
                     completion.TrySetResult();
                 }
                 catch (Exception exception) { completion.TrySetException(exception); }
