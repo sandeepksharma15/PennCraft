@@ -10,12 +10,13 @@ internal sealed record PenTrayEntry(string Title, bool Visible, Action Show, Act
 internal sealed class TrayCommands : IDisposable
 {
     private readonly Forms.NotifyIcon icon;
+    private readonly Icon trayIcon = AppInfo.CreateTrayIcon();
     private readonly Forms.ContextMenuStrip menu = new();
 
     public TrayCommands(Dispatcher dispatcher, Func<IEnumerable<PenTrayEntry>> entries,
         Action showAll, Action hideAll, Action create, Func<bool> creationEnabled, Action toggleCreation, Action exit,
         Action? arrange = null, Action? undoLayout = null, Func<bool>? canUndoLayout = null,
-        Action? saveLayout = null, Action? manageLayouts = null, Action? undoRestore = null, Func<bool>? canUndoRestore = null)
+        Action? saveLayout = null, Action? manageLayouts = null, Action? undoRestore = null, Func<bool>? canUndoRestore = null, Action? about = null)
     {
         void Add(Forms.ToolStripItemCollection target, string title, Action action) =>
             target.Add(title, null, (_, _) => dispatcher.InvokeAsync(action));
@@ -51,12 +52,13 @@ internal sealed class TrayCommands : IDisposable
             var gesture = new Forms.ToolStripMenuItem("Desktop rectangle creation") { Checked = creationEnabled() };
             gesture.Click += (_, _) => dispatcher.InvokeAsync(toggleCreation);
             menu.Items.Add(gesture);
+            if (about is not null) Add(menu.Items, "About PennCraft…", about);
             Add(menu.Items, "Exit PennCraft", exit);
             e.Cancel = false;
         };
         icon = new Forms.NotifyIcon
         {
-            Icon = SystemIcons.Application, Text = "PennCraft", ContextMenuStrip = menu, Visible = true
+            Icon = trayIcon, Text = $"PennCraft {AppInfo.Version}", ContextMenuStrip = menu, Visible = true
         };
         icon.DoubleClick += (_, _) => dispatcher.InvokeAsync(showAll);
     }
@@ -65,6 +67,7 @@ internal sealed class TrayCommands : IDisposable
     {
         icon.Visible = false;
         icon.Dispose();
+        trayIcon.Dispose();
         menu.Dispose();
     }
 }

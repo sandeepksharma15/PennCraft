@@ -1,12 +1,12 @@
 # Contributing
 
-PennCraft is at the scaffold stage. Please discuss significant behavioral or architectural changes in an issue before implementing them.
+PennCraft is in beta. Discuss significant behavior or architecture changes before implementing them.
 
-- Keep changes small, focused, and independently testable.
-- Preserve the `docs/`, `src/`, and `tests/` organization.
-- Use idiomatic C#, nullable reference types, and minimal dependencies.
-- Keep native shell operations isolated and document their failure modes.
-- Run `dotnet build PennCraft.slnx` and `dotnet test PennCraft.slnx` on Windows before submitting a pull request.
-- Include reproducible Windows validation steps for shell integration changes.
+- Keep changes focused, idiomatic and well formatted.
+- Preserve files, metadata and recovery records; document shell limitations.
+- Use a feature branch and meaningful policy/native-boundary tests.
+- Pass Windows Release build/tests and package verification before merging.
+- Distinguish automated results from interactive Explorer/DPI acceptance.
+- Do not publish packages or change release tags as part of an ordinary PR.
 
-See [architecture](docs/architecture.md) and [roadmap](docs/roadmap.md).
+See [architecture](docs/architecture.md), [roadmap](docs/roadmap.md), and [release process](docs/releasing.md).

@@ -31,7 +31,7 @@ internal static class PenWindowTestHost
                 MainWindow? window = null;
                 try
                 {
-                    window = new MainWindow(store, penId ?? Guid.NewGuid().ToString("N"));
+                    window = new MainWindow(store, penId ?? Guid.NewGuid().ToString("N"), root);
                     window.Show();
                     await test(window, store, root);
                     completion.TrySetResult();

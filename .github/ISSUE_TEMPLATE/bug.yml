@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a PennCraft beta problem
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Review logs/screenshots for private data. Do not attach your whole settings/storage folder."
+  - type: input
+    id: version
+    attributes:
+      label: PennCraft version
+      description: Find it in tray → About PennCraft.
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows build and display scaling
+      placeholder: Windows 11 build, monitor count, scaling percentages
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots (optional)
+      description: Remove personal information before sharing.

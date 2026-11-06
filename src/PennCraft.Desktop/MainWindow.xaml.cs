@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer saveTimer = new() { Interval = TimeSpan.FromMilliseconds(400) };
     private readonly PenSettingsStore store;
     private readonly string penId;
+    private readonly string itemDesktopDirectory;
     private PenSettings settings;
     private DesktopSurface? surface;
     private bool exiting;
@@ -28,11 +29,13 @@ public partial class MainWindow : Window
     {
     }
 
-    internal MainWindow(PenSettingsStore store, string penId)
+    internal MainWindow(PenSettingsStore store, string penId, string? desktopDirectory = null)
     {
         this.store = store;
         this.penId = penId;
+        itemDesktopDirectory = desktopDirectory ?? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         InitializeComponent();
+        Icon = AppInfo.CreateWindowIcon();
         settings = store.Load();
         ApplySettings();
         ItemsReady = InitializeItemsAsync();

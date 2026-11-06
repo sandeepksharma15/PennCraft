@@ -57,7 +57,7 @@ public sealed class PenViewTests
             window.HidePen();
             window.ExitApplication();
 
-            var restored = new MainWindow(store, Guid.NewGuid().ToString("N"));
+            var restored = new MainWindow(store, Guid.NewGuid().ToString("N"), root);
             try
             {
                 await restored.LayoutReady;

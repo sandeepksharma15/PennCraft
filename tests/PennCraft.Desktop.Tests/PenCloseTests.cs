@@ -29,7 +29,7 @@ public sealed class PenCloseTests
                 MainWindow? window = null;
                 try
                 {
-                    window = new MainWindow(store, Guid.NewGuid().ToString("N"));
+                    window = new MainWindow(store, Guid.NewGuid().ToString("N"), root);
                     window.Show();
                     await window.ItemsReady;
                     var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

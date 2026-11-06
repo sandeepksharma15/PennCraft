@@ -30,7 +30,7 @@ public sealed class PenLayoutWindowTests
                 MainWindow? window = null;
                 try
                 {
-                    window = new MainWindow(new PenSettingsStore(file), Guid.NewGuid().ToString("N"));
+                    window = new MainWindow(new PenSettingsStore(file), Guid.NewGuid().ToString("N"), root);
                     window.Show();
                     await window.ItemsReady;
                     window.UpdateLayout();
