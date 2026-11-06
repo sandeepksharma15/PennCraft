@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using System.Windows;
 using PennCraft.Desktop.Windows;
 
 namespace PennCraft.Desktop;
@@ -47,18 +46,11 @@ internal static class ReleaseSmokeTest
                 throw new InvalidDataException("Smoke state verification failed.");
             var runtimeLocal = File.Exists(Path.Combine(AppContext.BaseDirectory, "coreclr.dll"));
             if (!runtimeLocal) throw new InvalidOperationException("The release must contain its .NET runtime.");
-            using var report = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-            JsonSerializer.Serialize(report, new { Success = true, Version = AppInfo.Version, SelfContained = runtimeLocal });
-            return 0;
+            return WriteReport(reportPath, new { Success = true, Version = AppInfo.Version, SelfContained = runtimeLocal }) ? 0 : 1;
         }
         catch (Exception exception)
         {
-            // The report is supplied explicitly by release automation; never overwrite existing files.
-            if (Path.IsPathFullyQualified(reportPath) && !File.Exists(reportPath))
-            {
-                using var report = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                JsonSerializer.Serialize(report, new { Success = false, Error = exception.ToString() });
-            }
+            WriteReport(reportPath, new { Success = false, Error = exception.ToString() });
             return 1;
         }
         finally
@@ -73,6 +65,25 @@ internal static class ReleaseSmokeTest
                 catch (IOException) { }
                 catch (UnauthorizedAccessException) { }
             }
+        }
+    }
+
+    internal static bool WriteReport(string path, object payload)
+    {
+        if (!Path.IsPathFullyQualified(path) || File.Exists(path)) return false;
+        try
+        {
+            var parent = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(parent)) return false;
+            Directory.CreateDirectory(parent);
+            using var report = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            JsonSerializer.Serialize(report, payload);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+            or ArgumentException or NotSupportedException)
+        {
+            return false;
         }
     }
 }

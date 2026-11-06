@@ -58,6 +58,20 @@ public sealed class BetaReadinessTests
         });
     }
 
+    [Fact]
+    public void SmokeReportsCreateMissingParentsAndNeverOverwriteExistingReports()
+    {
+        WithRoot(root =>
+        {
+            var report = Path.Combine(root, "reports", "smoke.json");
+            Assert.True(ReleaseSmokeTest.WriteReport(report, new { Success = false, Error = "diagnostic" }));
+            var original = File.ReadAllText(report);
+            Assert.False(ReleaseSmokeTest.WriteReport(report, new { Success = true }));
+            Assert.Equal(original, File.ReadAllText(report));
+            Assert.False(ReleaseSmokeTest.WriteReport("relative.json", new { Success = false }));
+        });
+    }
+
     private static void WithRoot(Action<string> test)
     {
         var root = Path.Combine(Path.GetTempPath(), "PennCraft-beta", Guid.NewGuid().ToString("N"));
