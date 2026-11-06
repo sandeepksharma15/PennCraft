@@ -21,7 +21,7 @@ public partial class MainWindow
         RefreshSurface();
         ItemStatus.Measure(new Size(Math.Max(0, width - 20), double.PositiveInfinity));
         var chrome = Math.Max(32, Header.ActualHeight) + 12 + Math.Ceiling(ItemStatus.DesiredSize.Height);
-        return new(penId, DesktopGeometry.Bounds(this), DisplayPaths.Length, chrome);
+        return new(penId, DesktopGeometry.Bounds(this), DisplayPaths.Length, chrome, settings.IsFolded);
     }
 
     internal void BeginLayout()
@@ -53,7 +53,7 @@ public partial class MainWindow
             throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
         DesktopGeometry.Place(this, pixels);
         UpdateLayout();
-        settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
+        settings = settings with { Left = Left, Top = Top, Width = Width, Height = settings.IsFolded ? settings.Height : Height };
         geometryFallback = null;
     }
 }

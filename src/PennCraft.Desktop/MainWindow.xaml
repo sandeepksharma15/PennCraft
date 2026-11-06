@@ -54,14 +54,14 @@
                     <RowDefinition Height="32"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border x:Name="Header" Background="Transparent" CornerRadius="6,6,0,0">
+                <Border x:Name="Header" PreviewMouseLeftButtonDown="HeaderMouseDown" Background="Transparent" CornerRadius="6,6,0,0">
                     <Grid Margin="5,2">
                         <Thumb DragDelta="MovePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted" Cursor="SizeAll"
                                ToolTip="Drag on the screen grid. Hold Alt for smooth movement."/>
                         <TextBlock x:Name="TitleLabel" Text="Programs" Foreground="White" FontSize="15"
                                    FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="34,0"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="IBeam"
-                                   MouseLeftButtonDown="EditTitle" ToolTip="Click to rename"/>
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   ToolTip="Double-click to fold or unfold. Rename Pen is in the settings menu."/>
                         <TextBox x:Name="TitleEditor" Visibility="Collapsed" Margin="34,0" MaxLength="80"
                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                  Background="#FF202026" Foreground="White" BorderThickness="0"
@@ -72,7 +72,7 @@
                                 Click="ClosePen" ToolTip="Close Pen (empty Pens are deleted)" AutomationProperties.Name="Close Pen"/>
                     </Grid>
                 </Border>
-                <Grid Grid.Row="1" Margin="8,0,8,8">
+                <Grid x:Name="PenContent" Grid.Row="1" Margin="8,0,8,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
@@ -141,14 +141,16 @@
                 </Grid>
             </Grid>
         </Border>
-        <!-- Explicit grips also work with a layered, transparent WPF window. -->
-        <Thumb Tag="W" Width="6" HorizontalAlignment="Left" Cursor="SizeWE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="E" Width="6" HorizontalAlignment="Right" Cursor="SizeWE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="N" Height="6" VerticalAlignment="Top" Cursor="SizeNS" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="S" Height="6" VerticalAlignment="Bottom" Cursor="SizeNS" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="NW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="NE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="SW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
-        <Thumb Tag="SE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Grid x:Name="ResizeGrips">
+            <!-- Explicit grips also work with a layered, transparent WPF window. -->
+            <Thumb Tag="W" Width="6" HorizontalAlignment="Left" Cursor="SizeWE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="E" Width="6" HorizontalAlignment="Right" Cursor="SizeWE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="N" Height="6" VerticalAlignment="Top" Cursor="SizeNS" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="S" Height="6" VerticalAlignment="Bottom" Cursor="SizeNS" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="NW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="NE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="SW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+            <Thumb Tag="SE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        </Grid>
     </Grid>
 </Window>

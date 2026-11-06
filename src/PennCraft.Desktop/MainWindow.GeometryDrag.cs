@@ -20,7 +20,7 @@ public partial class MainWindow
     private void GeometryDragStarted(object sender, DragStartedEventArgs e)
     {
         var thumb = (Thumb)sender;
-        if (!CanExit || deleted) { thumb.CancelDrag(); return; }
+        if (!CanExit || deleted || settings.IsFolded && thumb.Tag is string) { thumb.CancelDrag(); return; }
         try
         {
             saveTimer.Stop();

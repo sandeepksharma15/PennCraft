@@ -21,6 +21,7 @@ internal sealed class WorkspaceController : IDisposable
     private bool WorkspaceBusy => organizationBusy || layoutBusy;
     private Dictionary<string, Rect>? undoLayout;
     private string? undoDisplayStamp;
+    private Dictionary<string, bool>? undoFoldStates;
     private readonly DesktopCreationGesture gesture;
     private WorkspaceSettings settings;
     private CreationPreview? preview;
@@ -260,7 +261,8 @@ internal sealed class WorkspaceController : IDisposable
     }
 
     private bool CanUndoLayout() => !WorkspaceBusy && undoLayout is { Count: > 0 }
-        && undoLayout.Keys.All(id => pens.Any(pen => pen.PenId == id && pen.UserVisible)) && pens.All(pen => pen.CanArrange);
+        && undoLayout.Keys.All(id => pens.Any(pen => pen.PenId == id && pen.UserVisible
+            && undoFoldStates?.GetValueOrDefault(id) == pen.IsFolded)) && pens.All(pen => pen.CanArrange);
 
     private async void ArrangePens()
     {
@@ -290,6 +292,7 @@ internal sealed class WorkspaceController : IDisposable
             if (CommitLayout(plan.Bounds))
             {
                 undoLayout = previous;
+                undoFoldStates = selected.ToDictionary(pen => pen.PenId, pen => pen.IsFolded);
                 undoDisplayStamp = stamp;
             }
         }

@@ -22,7 +22,7 @@ public partial class MainWindow
         return settings with
         {
             Left = geometry?.Left ?? Left, Top = geometry?.Top ?? Top,
-            Width = geometry?.Width ?? Width, Height = geometry?.Height ?? Height
+            Width = geometry?.Width ?? Width, Height = geometry?.Height ?? (settings.IsFolded ? settings.Height : Height)
         };
     }
 
