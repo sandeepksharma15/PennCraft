@@ -18,6 +18,7 @@ public sealed record PenSettings
     public double Width { get; init; } = 600;
     public double Height { get; init; } = 300;
     public double BackgroundOpacity { get; init; } = 0.78;
+    public double ItemScale { get; init; } = 1;
     public bool IsVisible { get; init; } = true;
     public bool IsFolded { get; init; }
     public string? PortalFolder { get; init; }
@@ -26,6 +27,7 @@ public sealed record PenSettings
 
     public PenSettings Normalize() => this with
     {
+        ItemScale = PenItemScale.Normalize(ItemScale),
         ItemPaths = PenMembership.Normalize(ItemPaths),
         TrackedItems = ItemTracking.Normalize(ItemPaths ?? [], TrackedItems),
         Title = string.IsNullOrWhiteSpace(Title) ? "Programs" : Title.Trim()[..Math.Min(Title.Trim().Length, 80)],

@@ -21,7 +21,7 @@ internal sealed class WorkspaceController : IDisposable
     private bool WorkspaceBusy => organizationBusy || layoutBusy;
     private Dictionary<string, Rect>? undoLayout;
     private string? undoDisplayStamp;
-    private Dictionary<string, bool>? undoFoldStates;
+    private Dictionary<string, (bool Folded, double Scale)>? undoViewStates;
     private readonly DesktopCreationGesture gesture;
     private WorkspaceSettings settings;
     private CreationPreview? preview;
@@ -262,7 +262,7 @@ internal sealed class WorkspaceController : IDisposable
 
     private bool CanUndoLayout() => !WorkspaceBusy && undoLayout is { Count: > 0 }
         && undoLayout.Keys.All(id => pens.Any(pen => pen.PenId == id && pen.UserVisible
-            && undoFoldStates?.GetValueOrDefault(id) == pen.IsFolded)) && pens.All(pen => pen.CanArrange);
+            && undoViewStates?.GetValueOrDefault(id) == (pen.IsFolded, pen.ItemScale))) && pens.All(pen => pen.CanArrange);
 
     private async void ArrangePens()
     {
@@ -285,14 +285,14 @@ internal sealed class WorkspaceController : IDisposable
             }
             var screen = DesktopGeometry.PrimaryLayoutScreen();
             var stamp = DesktopGeometry.DisplayLayoutStamp();
-            var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth);
+            var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth, selected.Max(pen => pen.ItemScale));
             var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, selected.Select(pen => pen.MeasureLayoutItem(width)), screen.GridOrigin);
             if (plan.Error is { } error) { MessageBox.Show(error, "PennCraft"); return; }
             var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
             if (CommitLayout(plan.Bounds))
             {
                 undoLayout = previous;
-                undoFoldStates = selected.ToDictionary(pen => pen.PenId, pen => pen.IsFolded);
+                undoViewStates = selected.ToDictionary(pen => pen.PenId, pen => (pen.IsFolded, pen.ItemScale));
                 undoDisplayStamp = stamp;
             }
         }

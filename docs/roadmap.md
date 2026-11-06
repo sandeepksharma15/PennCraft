@@ -41,3 +41,7 @@ Screen-grid movement and resizing use a 12-pixel step at 100% display scaling, m
 ## Milestone 0.13
 
 Manual fold/unfold for Pens and Folder Portals, persisted state, compact screen-grid movement and automatic layout participation. Expanded height is retained. See [usage and checks](milestone-0.13.md).
+
+## Milestone 0.14
+
+Grouped container menus and persisted per-container item scaling (75%, 100%, 125%, 150%), with scale-aware automatic layout. Tabs are deferred by user preference. See [usage and checks](milestone-0.14.md).

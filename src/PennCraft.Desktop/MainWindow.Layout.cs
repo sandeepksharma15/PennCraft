@@ -21,7 +21,8 @@ public partial class MainWindow
         RefreshSurface();
         ItemStatus.Measure(new Size(Math.Max(0, width - 20), double.PositiveInfinity));
         var chrome = Math.Max(32, Header.ActualHeight) + 12 + Math.Ceiling(ItemStatus.DesiredSize.Height);
-        return new(penId, DesktopGeometry.Bounds(this), DisplayPaths.Length, chrome, settings.IsFolded);
+        return new(penId, DesktopGeometry.Bounds(this), DisplayPaths.Length, chrome, settings.IsFolded, settings.ItemScale,
+            PenLayoutMetrics.ColumnCount(width, SystemParameters.VerticalScrollBarWidth, settings.ItemScale));
     }
 
     internal void BeginLayout()

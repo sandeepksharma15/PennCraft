@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Threading;
 using PennCraft.Desktop.Windows;
 using Xunit;
 
@@ -14,7 +13,7 @@ public sealed class PenFoldingTests
     [InlineData(true)]
     public async Task FoldedStatePreservesExpandedGeometryAcrossMovesLayoutHideAndRestart(bool portal)
     {
-        await WithWindow(portal, async (window, store, root) =>
+        await PenWindowTestHost.RunAsync(portal, async (window, store, root) =>
         {
             await window.LayoutReady;
             var original = window.TransferSnapshot();
@@ -69,7 +68,7 @@ public sealed class PenFoldingTests
     [Fact]
     public async Task BusyOperationsAndFailedWritesLeaveFoldStateUnchanged()
     {
-        await WithWindow(false, async (window, store, root) =>
+        await PenWindowTestHost.RunAsync(false, async (window, store, root) =>
         {
             await window.ItemsReady;
             window.ReserveTransfer();
@@ -104,46 +103,4 @@ public sealed class PenFoldingTests
         Assert.Contains("folded Pen header", plan.Error);
     }
 
-    private static async Task WithWindow(bool portal, Func<MainWindow, PenSettingsStore, string, Task> test)
-    {
-        var root = Path.Combine(Path.GetTempPath(), "PennCraft-fold", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(root);
-        File.WriteAllText(Path.Combine(root, "Item.txt"), "keep");
-        var store = new PenSettingsStore(Path.Combine(root, "pen.json"));
-        Assert.True(store.Save(new PenSettings
-        {
-            Width = 420, Height = 260,
-            PortalFolder = portal ? root : null,
-            ItemPaths = portal ? [] : [Path.Combine(root, "Item.txt")]
-        }));
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var token = TestContext.Current.CancellationToken;
-        var thread = new Thread(() =>
-        {
-            var dispatcher = Dispatcher.CurrentDispatcher;
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
-            dispatcher.InvokeAsync(async () =>
-            {
-                MainWindow? window = null;
-                try
-                {
-                    window = new MainWindow(store, Guid.NewGuid().ToString("N"));
-                    window.Show();
-                    await test(window, store, root);
-                    completion.TrySetResult();
-                }
-                catch (Exception exception) { completion.TrySetException(exception); }
-                finally
-                {
-                    window?.ExitApplication();
-                    dispatcher.BeginInvokeShutdown(DispatcherPriority.Background);
-                }
-            });
-            Dispatcher.Run();
-        }) { IsBackground = true };
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        try { await completion.Task.WaitAsync(TimeSpan.FromSeconds(40), token); }
-        finally { if (thread.Join(TimeSpan.FromSeconds(5))) Directory.Delete(root, recursive: true); }
-    }
 }

@@ -2,7 +2,8 @@ using System.Windows;
 
 namespace PennCraft.Desktop;
 
-internal sealed record PenLayoutItem(string Id, Rect CurrentBounds, int ItemCount, double ChromeHeight, bool IsFolded = false);
+internal sealed record PenLayoutItem(string Id, Rect CurrentBounds, int ItemCount, double ChromeHeight, bool IsFolded = false,
+    double ItemScale = 1, int ColumnCount = PenLayoutMetrics.Columns);
 internal sealed record PenLayoutPlan(Dictionary<string, Rect> Bounds, string? Error);
 
 /// <summary>Pure, ordered column packing in physical pixels. Failure never returns a partial layout.</summary>
@@ -15,7 +16,9 @@ internal static class PenLayoutPlanner
             || scale <= 0 || width < PenLayoutMetrics.CommonWidth(0)
             || gridOrigin is { } origin && !Finite(origin.X, origin.Y)
             || items.Any(item => string.IsNullOrWhiteSpace(item.Id) || item.ItemCount < 0
-                || !Finite(item.CurrentBounds.Left, item.CurrentBounds.Top, item.ChromeHeight) || item.ChromeHeight < 0)
+                || !Finite(item.CurrentBounds.Left, item.CurrentBounds.Top, item.ChromeHeight) || item.ChromeHeight < 0
+                || PenItemScale.Normalize(item.ItemScale) != item.ItemScale || item.ColumnCount < PenLayoutMetrics.Columns
+                || width < PenLayoutMetrics.CommonWidth(0, item.ItemScale))
             || items.Select(item => item.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != items.Length)
             return new([], "The screen or Pen measurements are unavailable. The layout was left unchanged.");
         if (items.Length == 0) return new([], null);
@@ -34,14 +37,14 @@ internal static class PenLayoutPlanner
         foreach (var item in items)
         {
             var minimum = grid.LengthUp((item.IsFolded ? PenSettings.FoldedHeight
-                : PenLayoutMetrics.MinimumRows * PenLayoutMetrics.CellHeight + item.ChromeHeight) * scale);
+                : PenLayoutMetrics.MinimumRows * PenLayoutMetrics.CellHeight * item.ItemScale + item.ChromeHeight) * scale);
             if (minimum > availableHeight)
                 return new([], item.IsFolded
                     ? "The primary screen is too short for a folded Pen header. The layout was left unchanged."
                     : "The primary screen is too short for three icon rows and the Pen header. The layout was left unchanged.");
-            var rows = Math.Max(PenLayoutMetrics.MinimumRows, Math.Ceiling(item.ItemCount / (double)PenLayoutMetrics.Columns));
+            var rows = Math.Max(PenLayoutMetrics.MinimumRows, Math.Ceiling(item.ItemCount / (double)item.ColumnCount));
             var height = item.IsFolded ? minimum
-                : Math.Min(availableHeight, grid.LengthUp((rows * PenLayoutMetrics.CellHeight + item.ChromeHeight) * scale));
+                : Math.Min(availableHeight, grid.LengthUp((rows * PenLayoutMetrics.CellHeight * item.ItemScale + item.ChromeHeight) * scale));
             if (y + height > bottom)
             {
                 columns++;

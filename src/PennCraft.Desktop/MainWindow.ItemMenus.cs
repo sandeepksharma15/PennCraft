@@ -36,9 +36,10 @@ public partial class MainWindow
     private async void ItemContextKey(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (e.Key != Key.Apps && !(e.Key == Key.F10 && Keyboard.Modifiers == ModifierKeys.Shift)) return;
+        if (editing) return; // Keep the title editor's own keyboard context menu.
         var selected = items.FirstOrDefault(item => item.IsSelected);
-        if (selected is null) return;
         e.Handled = true;
+        if (selected is null || settings.IsFolded) { ShowPenMenu(this); return; }
         var element = ItemGrid.ItemContainerGenerator.ContainerFromItem(selected) as FrameworkElement;
         await ShowItemMenuAsync(selected, (element ?? this).PointToScreen(new Point(24, 24)));
     }
@@ -306,7 +307,7 @@ public partial class MainWindow
 
     private void PenBackgroundRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (TitleEditor.IsMouseOver || itemMovesBusy || itemMenuBusy || transferBusy) return;
+        if (TitleEditor.IsMouseOver || itemMenuBusy) return;
         e.Handled = true;
         SelectItem(null);
         ShowPenMenu(this);
