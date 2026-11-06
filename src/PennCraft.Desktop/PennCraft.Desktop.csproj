@@ -12,6 +12,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>disable</ImplicitUsings>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>PennCraft</AssemblyName>
     <RootNamespace>PennCraft.Desktop</RootNamespace>
   </PropertyGroup>
