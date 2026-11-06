@@ -11,6 +11,7 @@ public sealed record PenSettings
 {
     public const double MinimumWidth = 240;
     public const double MinimumHeight = 120;
+    internal const double FoldedHeight = 36;
     public string Title { get; init; } = "Programs";
     public double Left { get; init; } = 100;
     public double Top { get; init; } = 100;
@@ -18,6 +19,7 @@ public sealed record PenSettings
     public double Height { get; init; } = 300;
     public double BackgroundOpacity { get; init; } = 0.78;
     public bool IsVisible { get; init; } = true;
+    public bool IsFolded { get; init; }
     public string? PortalFolder { get; init; }
     public string[] ItemPaths { get; init; } = [];
     public TrackedItem[] TrackedItems { get; init; } = [];

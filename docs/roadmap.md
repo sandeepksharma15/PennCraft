@@ -37,3 +37,7 @@ Arrange visible Pens and Portals on the primary monitor in equal-width columns f
 ## Milestone 0.12
 
 Screen-grid movement and resizing use a 12-pixel step at 100% display scaling, monitor-relative anchors, Alt smooth bypass and Escape cancellation. Automatic layout shares the grid while retaining its capacity and minimum-size guarantees. See [usage and validation](milestone-0.12.md).
+
+## Milestone 0.13
+
+Manual fold/unfold for Pens and Folder Portals, persisted state, compact screen-grid movement and automatic layout participation. Expanded height is retained. See [usage and checks](milestone-0.13.md).

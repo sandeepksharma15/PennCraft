@@ -83,7 +83,7 @@ public partial class MainWindow : Window
         Left = settings.Left;
         Top = settings.Top;
         Width = settings.Width;
-        Height = settings.Height;
+        ApplyFoldedPresentation();
         TitleLabel.Text = settings.Title;
         ApplyBackground();
     }
@@ -172,7 +172,8 @@ public partial class MainWindow : Window
         Left = workArea.Left + 40;
         Top = workArea.Top + 40;
         Width = Math.Min(600, workArea.Width);
-        Height = Math.Min(300, workArea.Height);
+        settings = settings with { Height = Math.Min(300, workArea.Height) };
+        ApplyFoldedPresentation();
         ShowPen();
     }
 
@@ -187,7 +188,6 @@ public partial class MainWindow : Window
 
     private void ResizePen(object sender, DragDeltaEventArgs e) => UpdateGeometryDrag();
 
-    private void EditTitle(object sender, MouseButtonEventArgs e) => BeginEditing();
 
     private void BeginEditing()
     {
@@ -233,6 +233,9 @@ public partial class MainWindow : Window
         var undo = new MenuItem { Header = "Undo last automatic layout", IsEnabled = CanUndoLayout?.Invoke() == true };
         undo.Click += (_, _) => UndoLayoutRequested?.Invoke();
         menu.Items.Add(undo);
+        var fold = new MenuItem { Header = settings.IsFolded ? "Unfold Pen" : "Fold Pen", IsEnabled = CanExit };
+        fold.Click += (_, _) => ToggleFold();
+        menu.Items.Add(fold);
         var rename = new MenuItem { Header = "Rename Pen" };
         rename.Click += (_, _) => Dispatcher.InvokeAsync(BeginEditing);
         menu.Items.Add(rename);
