@@ -307,7 +307,7 @@ public partial class MainWindow
 
     private void PenBackgroundRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (TitleEditor.IsMouseOver || itemMovesBusy || itemMenuBusy || transferBusy) return;
+        if (TitleEditor.IsMouseOver || itemMenuBusy) return;
         e.Handled = true;
         SelectItem(null);
         ShowPenMenu(this);

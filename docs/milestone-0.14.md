@@ -6,7 +6,7 @@ Open the hamburger menu or right-click empty Pen space. Both use the same menu:
 - **Layout** contains automatic arrangement, its Undo and Reset position and show.
 - Storage/folder access, Hide and Delete remain available. Ordinary Pens also offer Add Recycle Bin.
 
-When the Pen has keyboard focus, the Menu key or Shift+F10 opens item commands for a selected visible item, or the container menu when no item is selected or the Pen is folded. Item right-click commands remain Windows-managed. Commands recheck their availability when invoked.
+When the Pen has keyboard focus, the Menu key or Shift+F10 opens item commands for a selected visible item, or the container menu when no item is selected or the Pen is folded. Item right-click commands remain Windows-managed. Busy operations keep the container menu available with commands disabled. Commands recheck their availability when invoked.
 
 ## Item size
 

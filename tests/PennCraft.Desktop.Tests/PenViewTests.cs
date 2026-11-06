@@ -85,6 +85,9 @@ public sealed class PenViewTests
             Assert.True(Find(sizes, "100% (default)").IsChecked);
             var large = sizes.Items.OfType<MenuItem>().Last();
             window.ReserveTransfer();
+            var busyMenu = window.BuildPenMenu();
+            Assert.False(Find(busyMenu, "Rename Pen").IsEnabled);
+            Assert.All(Find(Find(busyMenu, "View"), "Item size").Items.OfType<MenuItem>(), item => Assert.False(item.IsEnabled));
             large.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); // Menu was created before the busy operation.
             Assert.Equal(1, window.ItemScale);
             Assert.False(window.SetItemScale(1.5));

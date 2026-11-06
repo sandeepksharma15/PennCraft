@@ -10,7 +10,7 @@ public partial class MainWindow
 
     private void ShowPenMenu(FrameworkElement target)
     {
-        if (!CanChangePresentation) return;
+        if (deleted) return;
         var menu = BuildPenMenu();
         menu.PlacementTarget = target;
         menu.IsOpen = true;
