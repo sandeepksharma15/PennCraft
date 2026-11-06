@@ -7,7 +7,8 @@ internal readonly record struct ScreenGrid(Point Origin, double Step)
 {
     internal static ScreenGrid AtScale(Point origin, double scale)
     {
-        if (!double.IsFinite(scale) || scale <= 0 || !double.IsFinite(origin.X) || !double.IsFinite(origin.Y)) throw new ArgumentOutOfRangeException(nameof(scale));
+        if (!double.IsFinite(scale) || scale <= 0) throw new ArgumentOutOfRangeException(nameof(scale));
+        if (!double.IsFinite(origin.X) || !double.IsFinite(origin.Y)) throw new ArgumentOutOfRangeException(nameof(origin));
         return new(origin, Math.Max(1, Math.Round(12 * scale, MidpointRounding.AwayFromZero)));
     }
 

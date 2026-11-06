@@ -4,7 +4,7 @@ Header movement and all eight resize grips now snap to a common grid anchored at
 
 Movement snaps the top-left corner. Resizing snaps only the dragged edges, preserving the opposite edges. Small pointer movements accumulate from the original gesture, rather than being rounded away or recalculated from an already-snapped border. Existing off-grid geometry is retained until a move, resize or automatic arrangement.
 
-Hold **Alt** for smooth adjustment; releasing it returns to the grid. Press **Escape** to cancel a gesture and restore its original bounds. Releasing the mouse saves the final geometry. Normal metadata updates may still save during a gesture. Manual minimum sizes remain unchanged; a minimum-edge clamp uses the nearest valid grid line without moving the opposite edge.
+Hold **Alt** for smooth adjustment; releasing it returns to the grid. Press **Escape** to cancel a gesture and restore its original bounds. Releasing the mouse saves the final geometry. If cancellation cannot restore the native bounds, the previous saved geometry is retained through later metadata saves until a successful geometry operation or Reset position; restarting restores it. Normal metadata updates may still save during a gesture. Manual minimum sizes remain unchanged; a minimum-edge clamp uses the nearest valid grid line without moving the opposite edge.
 
 The monitor under the pointer supplies the grid and display scale. Moving between differently scaled monitors preserves logical size and logical pointer offset as Windows processes the DPI transition. Resize minimums account for current and destination scaling. Mixed-DPI transitions remain manual acceptance.
 

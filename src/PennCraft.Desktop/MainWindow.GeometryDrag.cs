@@ -12,6 +12,8 @@ public partial class MainWindow
 {
     private PenGeometryDrag? geometryGesture;
     private Thumb? geometryThumb;
+    private PenSettings? geometryOriginal;
+    private PenSettings? geometryFallback;
     private readonly DispatcherTimer geometryKeyTimer = new(DispatcherPriority.Input) { Interval = TimeSpan.FromMilliseconds(40) };
     private bool geometrySmooth;
 
@@ -22,6 +24,7 @@ public partial class MainWindow
         try
         {
             saveTimer.Stop();
+            geometryOriginal = geometryFallback ?? TransferSnapshot();
             geometryGesture = new(DesktopGeometry.Bounds(this), DesktopGeometry.CursorPosition(), thumb.Tag as string,
                 VisualTreeHelper.GetDpi(this).DpiScaleX);
             geometryThumb = thumb;
@@ -56,6 +59,7 @@ public partial class MainWindow
                 if (currentBounds.Location == bounds.Location) return;
                 DesktopGeometry.Move(this, bounds.Location);
                 UpdateLayout();
+                geometryFallback = null;
             }
             else if (currentBounds != bounds) ApplyLayoutBounds(bounds);
         }
@@ -80,9 +84,17 @@ public partial class MainWindow
         try { if (e.Canceled) ApplyLayoutBounds(gesture.Bounds); }
         catch (Exception exception) when (GeometryError(exception))
         {
-            ItemStatus.Text = "The previous bounds could not be restored. Use Reset position if necessary.";
+            if (geometryOriginal is { } original) RetainGeometryAfterRestoreFailure(original);
+            ItemStatus.Text = "The previous bounds could not be restored. Saved geometry was retained; use Reset position or restart.";
         }
         SaveSettings();
+        geometryOriginal = null;
+    }
+
+    internal void RetainGeometryAfterRestoreFailure(PenSettings previous)
+    {
+        geometryFallback = previous;
+        saveTimer.Stop();
     }
 
     private void GeometryKeyTick(object? sender, EventArgs e)

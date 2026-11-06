@@ -103,7 +103,12 @@ public partial class MainWindow : Window
     private bool SaveSettings()
     {
         if (transferBusy || deleted) return false;
-        settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
+        var geometry = geometryFallback;
+        settings = settings with
+        {
+            Left = geometry?.Left ?? Left, Top = geometry?.Top ?? Top,
+            Width = geometry?.Width ?? Width, Height = geometry?.Height ?? Height
+        };
         var saved = store.Save(settings);
         if (saved) SettingsSaved?.Invoke(this, EventArgs.Empty);
         return saved;
@@ -167,6 +172,7 @@ public partial class MainWindow : Window
     internal void ResetPosition()
     {
         if (deleted) return;
+        geometryFallback = null;
         var workArea = SystemParameters.WorkArea;
         Left = workArea.Left + 40;
         Top = workArea.Top + 40;

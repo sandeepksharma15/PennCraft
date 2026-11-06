@@ -116,6 +116,8 @@ internal static partial class DesktopGeometry
     internal static void Move(Window window, Point point)
     {
         var hwnd = new WindowInteropHelper(window).EnsureHandle();
+        // Settle WPF DPI-induced repositioning, rather than retrying a failed native call.
+        // Either placement failing aborts the gesture and invokes cancellation recovery.
         for (var pass = 0; pass < 2; pass++)
             if (!Native.SetWindowPos(hwnd, 0, (int)point.X, (int)point.Y, 0, 0, 0x0001 | 0x0004 | 0x0010))
                 throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());

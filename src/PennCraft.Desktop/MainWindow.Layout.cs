@@ -50,5 +50,6 @@ public partial class MainWindow
         DesktopGeometry.Place(this, pixels);
         UpdateLayout();
         settings = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
+        geometryFallback = null;
     }
 }
