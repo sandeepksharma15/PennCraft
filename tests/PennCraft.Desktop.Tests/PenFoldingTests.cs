@@ -41,6 +41,7 @@ public sealed class PenFoldingTests
             window.BeginLayout();
             try { window.ApplyLayoutBounds(plan.Bounds[window.PenId]); }
             finally { window.EndLayout(); }
+            Assert.Equal(plan.Bounds[window.PenId], DesktopGeometry.Bounds(window));
             window.HidePen();
             Assert.Equal(original.Height, store.Load().Height);
             Assert.True(window.ToggleFold());
@@ -92,6 +93,15 @@ public sealed class PenFoldingTests
         Assert.Null(plan.Error);
         Assert.Equal(new Rect(1296, 24, 600, 36), plan.Bounds["one"]);
         Assert.Equal(new Rect(1296, 84, 600, 36), plan.Bounds["two"]);
+    }
+
+    [Fact]
+    public void InsufficientSpaceDescribesFoldedHeaders()
+    {
+        var plan = PenLayoutPlanner.Plan(new Rect(0, 0, 1920, 60), 1, 600,
+            [new("folded", new Rect(0, 0, 600, 36), 0, 60, true)]);
+        Assert.Empty(plan.Bounds);
+        Assert.Contains("folded Pen header", plan.Error);
     }
 
     private static async Task WithWindow(bool portal, Func<MainWindow, PenSettingsStore, string, Task> test)

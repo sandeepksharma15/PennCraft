@@ -36,7 +36,9 @@ internal static class PenLayoutPlanner
             var minimum = grid.LengthUp((item.IsFolded ? PenSettings.FoldedHeight
                 : PenLayoutMetrics.MinimumRows * PenLayoutMetrics.CellHeight + item.ChromeHeight) * scale);
             if (minimum > availableHeight)
-                return new([], "The primary screen is too short for three icon rows and the Pen header. The layout was left unchanged.");
+                return new([], item.IsFolded
+                    ? "The primary screen is too short for a folded Pen header. The layout was left unchanged."
+                    : "The primary screen is too short for three icon rows and the Pen header. The layout was left unchanged.");
             var rows = Math.Max(PenLayoutMetrics.MinimumRows, Math.Ceiling(item.ItemCount / (double)PenLayoutMetrics.Columns));
             var height = item.IsFolded ? minimum
                 : Math.Min(availableHeight, grid.LengthUp((rows * PenLayoutMetrics.CellHeight + item.ChromeHeight) * scale));

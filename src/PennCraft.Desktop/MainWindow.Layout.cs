@@ -51,11 +51,6 @@ public partial class MainWindow
         // Move to the destination monitor first so WPF processes its DPI transition before final sizing.
         if (!Native.SetWindowPos(hwnd, 0, (int)pixels.Left, (int)pixels.Top, 0, 0, 0x0001 | 0x0004 | 0x0010))
             throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error());
-        if (settings.IsFolded)
-        {
-            var scale = System.Windows.Media.VisualTreeHelper.GetDpi(this).DpiScaleY;
-            pixels.Height = FoldedHeight * scale;
-        }
         DesktopGeometry.Place(this, pixels);
         UpdateLayout();
         settings = settings with { Left = Left, Top = Top, Width = Width, Height = settings.IsFolded ? settings.Height : Height };
