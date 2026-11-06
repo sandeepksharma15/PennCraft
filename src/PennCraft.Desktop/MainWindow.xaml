@@ -7,7 +7,7 @@
         AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" ShowActivated="False" AllowDrop="True"
         PreviewDragOver="PreviewItemDragOver" PreviewDrop="DropItems"
-        MouseRightButtonUp="PenBackgroundRightClick" KeyDown="ItemContextKey">
+        MouseRightButtonUp="PenBackgroundRightClick" KeyDown="ItemContextKey" PreviewKeyDown="GeometryDragKeyDown">
     <Window.Resources>
         <Style x:Key="HeaderButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
@@ -56,8 +56,8 @@
                 </Grid.RowDefinitions>
                 <Border x:Name="Header" Background="Transparent" CornerRadius="6,6,0,0">
                     <Grid Margin="5,2">
-                        <Thumb DragDelta="MovePen" Cursor="SizeAll"
-                               ToolTip="Drag to move."/>
+                        <Thumb DragDelta="MovePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted" Cursor="SizeAll"
+                               ToolTip="Drag on the screen grid. Hold Alt for smooth movement."/>
                         <TextBlock x:Name="TitleLabel" Text="Programs" Foreground="White" FontSize="15"
                                    FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="34,0"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="IBeam"
@@ -142,13 +142,13 @@
             </Grid>
         </Border>
         <!-- Explicit grips also work with a layered, transparent WPF window. -->
-        <Thumb Tag="W" Width="6" HorizontalAlignment="Left" Cursor="SizeWE" DragDelta="ResizePen"/>
-        <Thumb Tag="E" Width="6" HorizontalAlignment="Right" Cursor="SizeWE" DragDelta="ResizePen"/>
-        <Thumb Tag="N" Height="6" VerticalAlignment="Top" Cursor="SizeNS" DragDelta="ResizePen"/>
-        <Thumb Tag="S" Height="6" VerticalAlignment="Bottom" Cursor="SizeNS" DragDelta="ResizePen"/>
-        <Thumb Tag="NW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" DragDelta="ResizePen"/>
-        <Thumb Tag="NE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" DragDelta="ResizePen"/>
-        <Thumb Tag="SW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" DragDelta="ResizePen"/>
-        <Thumb Tag="SE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" DragDelta="ResizePen"/>
+        <Thumb Tag="W" Width="6" HorizontalAlignment="Left" Cursor="SizeWE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="E" Width="6" HorizontalAlignment="Right" Cursor="SizeWE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="N" Height="6" VerticalAlignment="Top" Cursor="SizeNS" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="S" Height="6" VerticalAlignment="Bottom" Cursor="SizeNS" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="NW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="NE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="SW" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
+        <Thumb Tag="SE" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" DragDelta="ResizePen" DragStarted="GeometryDragStarted" DragCompleted="GeometryDragCompleted"/>
     </Grid>
 </Window>

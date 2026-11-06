@@ -33,3 +33,7 @@ One-time fresh-workspace setup groups desktop PDFs, .lnk shortcuts and folders i
 ## Milestone 0.11
 
 Arrange visible Pens and Portals on the primary monitor in equal-width columns from right to left, with content-based heights and minimum six-column/three-row capacity. Insufficient space leaves the layout unchanged. One-level session Undo and geometry-only recovery are included. See [usage and validation](milestone-0.11.md).
+
+## Milestone 0.12
+
+Screen-grid movement and resizing use a 12-pixel step at 100% display scaling, monitor-relative anchors, Alt smooth bypass and Escape cancellation. Automatic layout shares the grid while retaining its capacity and minimum-size guarantees. See [usage and validation](milestone-0.12.md).

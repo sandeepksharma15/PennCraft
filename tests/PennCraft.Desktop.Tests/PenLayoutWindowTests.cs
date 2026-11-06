@@ -37,7 +37,7 @@ public sealed class PenLayoutWindowTests
                     var oldBounds = DesktopGeometry.Bounds(window);
                     var screen = DesktopGeometry.PrimaryLayoutScreen();
                     var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth);
-                    var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, [window.MeasureLayoutItem(width)]);
+                    var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, [window.MeasureLayoutItem(width)], screen.GridOrigin);
                     Assert.Null(plan.Error);
                     window.BeginLayout();
                     try { window.ApplyLayoutBounds(plan.Bounds[window.PenId]); }

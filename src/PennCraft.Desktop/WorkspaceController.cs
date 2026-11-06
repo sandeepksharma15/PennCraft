@@ -284,7 +284,7 @@ internal sealed class WorkspaceController : IDisposable
             var screen = DesktopGeometry.PrimaryLayoutScreen();
             var stamp = DesktopGeometry.DisplayLayoutStamp();
             var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth);
-            var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, selected.Select(pen => pen.MeasureLayoutItem(width)));
+            var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, selected.Select(pen => pen.MeasureLayoutItem(width)), screen.GridOrigin);
             if (plan.Error is { } error) { MessageBox.Show(error, "PennCraft"); return; }
             var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
             if (CommitLayout(plan.Bounds))

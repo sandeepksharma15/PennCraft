@@ -69,7 +69,7 @@ public partial class MainWindow : Window
     internal event EventHandler? SettingsSaved;
     internal string PenTitle => settings.Title;
     internal bool UserVisible => settings.IsVisible;
-    internal bool CanExit => !itemMovesBusy && !itemDragActive && !itemMenuBusy && !itemReconciliationBusy && !transferBusy;
+    internal bool CanExit => !itemMovesBusy && !itemDragActive && !itemMenuBusy && !itemReconciliationBusy && !transferBusy && geometryGesture is null;
 
     internal void PlaceAt(System.Windows.Rect pixels)
     {
@@ -94,7 +94,7 @@ public partial class MainWindow : Window
 
     private void ScheduleSave()
     {
-        if (!IsLoaded || transferBusy) return;
+        if (!IsLoaded || transferBusy || geometryGesture is not null) return;
         saveTimer.Stop();
         saveTimer.Start();
     }
@@ -110,7 +110,7 @@ public partial class MainWindow : Window
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy)
+        if (itemMovesBusy || itemDragActive || itemMenuBusy || itemReconciliationBusy || transferBusy || geometryGesture is not null)
         {
             e.Cancel = true;
             exiting = false;
@@ -181,22 +181,9 @@ public partial class MainWindow : Window
         Close();
     }
 
-    private void MovePen(object sender, DragDeltaEventArgs e)
-    {
-        Left += e.HorizontalChange;
-        Top += e.VerticalChange;
-    }
+    private void MovePen(object sender, DragDeltaEventArgs e) => UpdateGeometryDrag();
 
-    private void ResizePen(object sender, DragDeltaEventArgs e)
-    {
-        var bounds = settings with { Left = Left, Top = Top, Width = Width, Height = Height };
-        var resized = PenGeometry.Resize(bounds, (string)((Thumb)sender).Tag,
-            e.HorizontalChange, e.VerticalChange);
-        Left = resized.Left;
-        Top = resized.Top;
-        Width = resized.Width;
-        Height = resized.Height;
-    }
+    private void ResizePen(object sender, DragDeltaEventArgs e) => UpdateGeometryDrag();
 
     private void EditTitle(object sender, MouseButtonEventArgs e) => BeginEditing();
 

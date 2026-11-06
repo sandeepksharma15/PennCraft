@@ -12,15 +12,15 @@ public sealed class PenLayoutTests
             new Rect(100, index * 10, 300, 200), 1, 60));
         var plan = PenLayoutPlanner.Plan(new Rect(0, 0, 1920, 1080), 1, 600, items);
         Assert.Null(plan.Error);
-        Assert.Equal(new Rect(1296, 24, 600, 330), plan.Bounds["0"]);
-        Assert.Equal(new Rect(1296, 378, 600, 330), plan.Bounds["1"]);
-        Assert.Equal(new Rect(672, 24, 600, 330), plan.Bounds["2"]);
-        Assert.Equal(new Rect(672, 378, 600, 330), plan.Bounds["3"]);
+        Assert.Equal(new Rect(1296, 24, 600, 336), plan.Bounds["0"]);
+        Assert.Equal(new Rect(1296, 384, 600, 336), plan.Bounds["1"]);
+        Assert.Equal(new Rect(672, 24, 600, 336), plan.Bounds["2"]);
+        Assert.Equal(new Rect(672, 384, 600, 336), plan.Bounds["3"]);
     }
 
     [Theory]
-    [InlineData(0, 330)]
-    [InlineData(18, 330)]
+    [InlineData(0, 336)]
+    [InlineData(18, 336)]
     [InlineData(19, 420)]
     [InlineData(24, 420)]
     [InlineData(1000, 1032)]
@@ -43,8 +43,9 @@ public sealed class PenLayoutTests
             [new("Pen", new Rect(-1000, 100, 300, 200), 18, 60)]);
         Assert.Null(plan.Error);
         var bounds = plan.Bounds["Pen"];
-        Assert.Equal(area.Right - Math.Ceiling(24 * scale), bounds.Right);
-        Assert.Equal(area.Top + Math.Ceiling(24 * scale), bounds.Top);
+        var grid = ScreenGrid.AtScale(new Point(), scale);
+        Assert.Equal(grid.FloorX(area.Right - 2 * grid.Step), bounds.Right);
+        Assert.Equal(grid.CeilingY(area.Top + 2 * grid.Step), bounds.Top);
         Assert.True(bounds.Width / scale - 20 - 40 >= 6 * PenLayoutMetrics.CellWidth);
         Assert.True(bounds.Height / scale - 60 >= 3 * PenLayoutMetrics.CellHeight);
     }
