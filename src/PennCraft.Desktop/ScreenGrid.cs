@@ -30,9 +30,9 @@ internal sealed record PenGeometryDrag(Rect Bounds, Point Pointer, string? Edge,
         if (Edge is null)
         {
             var ratio = targetScale / StartScale;
-            var left = pointer.X - (Pointer.X - Bounds.Left) * ratio;
-            var top = pointer.Y - (Pointer.Y - Bounds.Top) * ratio;
-            return new Rect(smooth ? left : grid.X(left), smooth ? top : grid.Y(top),
+            var moveLeft = pointer.X - (Pointer.X - Bounds.Left) * ratio;
+            var moveTop = pointer.Y - (Pointer.Y - Bounds.Top) * ratio;
+            return new Rect(smooth ? moveLeft : grid.X(moveLeft), smooth ? moveTop : grid.Y(moveTop),
                 Bounds.Width * ratio, Bounds.Height * ratio);
         }
         if (Edge is not ("W" or "E" or "N" or "S" or "NW" or "NE" or "SW" or "SE"))
