@@ -45,3 +45,7 @@ Manual fold/unfold for Pens and Folder Portals, persisted state, compact screen-
 ## Milestone 0.14
 
 Grouped container menus and persisted per-container item scaling (75%, 100%, 125%, 150%), with scale-aware automatic layout. Tabs are deferred by user preference. See [usage and checks](milestone-0.14.md).
+
+## Milestone 0.15
+
+Named saved layouts capture container presentation, with restore, rename/delete, session Undo and presentation-only startup recovery. Restore checks the monitor setup and preserves current contents and metadata. Tabs remain deferred. See [usage and checks](milestone-0.15.md).

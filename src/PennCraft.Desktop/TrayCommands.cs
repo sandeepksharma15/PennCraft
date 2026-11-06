@@ -14,7 +14,8 @@ internal sealed class TrayCommands : IDisposable
 
     public TrayCommands(Dispatcher dispatcher, Func<IEnumerable<PenTrayEntry>> entries,
         Action showAll, Action hideAll, Action create, Func<bool> creationEnabled, Action toggleCreation, Action exit,
-        Action? arrange = null, Action? undoLayout = null, Func<bool>? canUndoLayout = null)
+        Action? arrange = null, Action? undoLayout = null, Func<bool>? canUndoLayout = null,
+        Action? saveLayout = null, Action? manageLayouts = null, Action? undoRestore = null, Func<bool>? canUndoRestore = null)
     {
         void Add(Forms.ToolStripItemCollection target, string title, Action action) =>
             target.Add(title, null, (_, _) => dispatcher.InvokeAsync(action));
@@ -28,6 +29,13 @@ internal sealed class TrayCommands : IDisposable
             {
                 var undo = menu.Items.Add("Undo last automatic layout", null, (_, _) => dispatcher.InvokeAsync(undoLayout));
                 undo.Enabled = canUndoLayout?.Invoke() == true;
+            }
+            if (saveLayout is not null) Add(menu.Items, "Save current layout…", saveLayout);
+            if (manageLayouts is not null) Add(menu.Items, "Saved layouts…", manageLayouts);
+            if (undoRestore is not null)
+            {
+                var undo = menu.Items.Add("Undo last layout restore", null, (_, _) => dispatcher.InvokeAsync(undoRestore));
+                undo.Enabled = canUndoRestore?.Invoke() == true;
             }
             foreach (var entry in entries())
             {

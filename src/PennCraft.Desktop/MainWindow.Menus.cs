@@ -58,6 +58,10 @@ public partial class MainWindow
         layout.Items.Add(Command("Arrange Pens automatically", () => ArrangeRequested?.Invoke(), () => CanArrange));
         layout.Items.Add(Command("Undo last automatic layout", () => UndoLayoutRequested?.Invoke(), () => CanUndoLayout?.Invoke() == true));
         layout.Items.Add(Command("Reset position and show", ResetPosition));
+        layout.Items.Add(new Separator());
+        layout.Items.Add(Command("Save current layout…", () => SaveLayoutRequested?.Invoke()));
+        layout.Items.Add(Command("Saved layouts…", () => SavedLayoutsRequested?.Invoke()));
+        layout.Items.Add(Command("Undo last layout restore", () => UndoSavedLayoutRequested?.Invoke(), () => CanUndoSavedLayout?.Invoke() == true));
         menu.Items.Add(layout);
         menu.Items.Add(new Separator());
 

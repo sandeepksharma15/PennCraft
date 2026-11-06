@@ -8,7 +8,7 @@ using PennCraft.Desktop.Windows;
 namespace PennCraft.Desktop;
 
 /// <summary>Owns windows, one tray icon, the creation observer and the durable workspace index.</summary>
-internal sealed class WorkspaceController : IDisposable
+internal sealed partial class WorkspaceController : IDisposable
 {
     private readonly Application app;
     private readonly WorkspaceStore store;
@@ -44,6 +44,9 @@ internal sealed class WorkspaceController : IDisposable
         settings = store.Load();
         layouts = new LayoutTransaction(store);
         layouts.Recover();
+        savedLayoutTransaction = new SavedLayoutTransaction(store);
+        savedLayoutTransaction.Recover();
+        savedLayouts = new SavedLayoutStore(store.SavedLayoutsPath);
         transfers = new PenTransferCoordinator(store, desktop, () => pens);
         transfers.Recover();
         foreach (var id in settings.PenIds) OpenPen(id);
@@ -56,18 +59,23 @@ internal sealed class WorkspaceController : IDisposable
         tray = new TrayCommands(app.Dispatcher,
             () => pens.Select(pen => new PenTrayEntry(pen.PenTitle, pen.UserVisible, pen.ShowPen, pen.HidePen, pen.ResetPosition)),
             () => pens.ForEach(pen => pen.ShowPen()), () => pens.ForEach(pen => pen.HidePen()),
-            () => { if (!WorkspaceBusy) CreatePen(null); }, () => settings.CreationEnabled, ToggleCreation, Exit, ArrangePens, UndoLayout, CanUndoLayout);
+            () => { if (!WorkspaceBusy) CreatePen(null); }, () => settings.CreationEnabled, ToggleCreation, Exit, ArrangePens, UndoLayout, CanUndoLayout,
+            SaveCurrentLayout, ManageSavedLayouts, UndoSavedLayout, CanUndoSavedLayout);
     }
 
     private MainWindow OpenPen(string id)
     {
         var pen = new MainWindow(new PenSettingsStore(store.SettingsPath(id)), id) { Transfers = transfers };
-        if ((layouts.BlockedReason ?? deletions.BlockedReason ?? transfers.BlockedReason) is { } error) pen.BlockTransferRecovery(error);
+        if ((savedLayoutTransaction.BlockedReason ?? layouts.BlockedReason ?? deletions.BlockedReason ?? transfers.BlockedReason) is { } error) pen.BlockTransferRecovery(error);
         pen.DeleteEmptyRequested = DeleteEmptyPen;
         pen.DeleteRequested = DeletePen;
         pen.ArrangeRequested = ArrangePens;
         pen.UndoLayoutRequested = UndoLayout;
         pen.CanUndoLayout = CanUndoLayout;
+        pen.SaveLayoutRequested = SaveCurrentLayout;
+        pen.SavedLayoutsRequested = ManageSavedLayouts;
+        pen.UndoSavedLayoutRequested = UndoSavedLayout;
+        pen.CanUndoSavedLayout = CanUndoSavedLayout;
         pens.Add(pen);
         pen.SettingsSaved += (_, _) => RearmOrganizationOffer(pen);
         pen.Show();
@@ -112,7 +120,7 @@ internal sealed class WorkspaceController : IDisposable
 
     private void OfferCreation(Rect region)
     {
-        if (disposed || organizationBusy || !settings.CreationEnabled || pens.Any(pen => !pen.CanExit)) return;
+        if (disposed || WorkspaceBusy || !settings.CreationEnabled || pens.Any(pen => !pen.CanExit)) return;
         DismissPreview();
         if (DesktopGeometry.Obstacles().Any(region.IntersectsWith)) return;
         var offered = new CreationPreview(region, bounds => CreatePen(bounds), CreatePortal);
@@ -291,6 +299,7 @@ internal sealed class WorkspaceController : IDisposable
             var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
             if (CommitLayout(plan.Bounds))
             {
+                undoSavedLayout = null;
                 undoLayout = previous;
                 undoViewStates = selected.ToDictionary(pen => pen.PenId, pen => (pen.IsFolded, pen.ItemScale));
                 undoDisplayStamp = stamp;
