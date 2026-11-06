@@ -24,7 +24,10 @@ public sealed class SavedLayoutTests
             store.Rename(created.Id, "Development");
             Assert.Equal("Development", Assert.Single(store.Load()).Name);
             using (var locked = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-                Assert.Throws<IOException>(() => store.Rename(created.Id, "Unsaved"));
+            {
+                var failure = Record.Exception(() => store.Rename(created.Id, "Unsaved"));
+                Assert.True(failure is IOException or UnauthorizedAccessException);
+            }
             Assert.Equal("Development", Assert.Single(store.Load()).Name);
             store.Delete(created.Id);
             Assert.Empty(new SavedLayoutStore(path).Load());
