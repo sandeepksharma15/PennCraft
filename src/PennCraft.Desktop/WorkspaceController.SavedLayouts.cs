@@ -143,7 +143,7 @@ internal sealed partial class WorkspaceController
             foreach (var pen in pens) pen.BlockTransferRecovery(blocked);
         if (!committed)
             MessageBox.Show(savedLayoutTransaction.BlockedReason
-                ?? "The layout could not be saved. The previous presentation was retained.", "PennCraft");
+                ?? "The layout could not be restored. The previous presentation was retained.", "PennCraft");
         return committed ? before : null;
     }
 }
