@@ -29,3 +29,7 @@ Windows-managed single-item Portal moves and native item context menus are imple
 ## Milestone 0.10
 
 One-time fresh-workspace setup groups desktop PDFs, .lnk shortcuts and folders into Documents, Programs and Folders Pens. Recycle Bin can be added as a namespace reference with reversible desktop icon visibility. There is no recurring organization. See [scope and manual checks](milestone-0.10.md).
+
+## Milestone 0.11
+
+Arrange visible Pens and Portals on the primary monitor in equal-width columns from right to left, with content-based heights and minimum six-column/three-row capacity. Insufficient space leaves the layout unchanged. One-level session Undo and geometry-only recovery are included. See [usage and validation](milestone-0.11.md).

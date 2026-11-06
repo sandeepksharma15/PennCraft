@@ -13,7 +13,8 @@ internal sealed class TrayCommands : IDisposable
     private readonly Forms.ContextMenuStrip menu = new();
 
     public TrayCommands(Dispatcher dispatcher, Func<IEnumerable<PenTrayEntry>> entries,
-        Action showAll, Action hideAll, Action create, Func<bool> creationEnabled, Action toggleCreation, Action exit)
+        Action showAll, Action hideAll, Action create, Func<bool> creationEnabled, Action toggleCreation, Action exit,
+        Action? arrange = null, Action? undoLayout = null, Func<bool>? canUndoLayout = null)
     {
         void Add(Forms.ToolStripItemCollection target, string title, Action action) =>
             target.Add(title, null, (_, _) => dispatcher.InvokeAsync(action));
@@ -22,6 +23,12 @@ internal sealed class TrayCommands : IDisposable
             foreach (Forms.ToolStripItem item in menu.Items.Cast<Forms.ToolStripItem>().ToArray()) item.Dispose();
             menu.Items.Clear();
             Add(menu.Items, "New Pen", create);
+            if (arrange is not null) Add(menu.Items, "Arrange Pens automatically", arrange);
+            if (undoLayout is not null)
+            {
+                var undo = menu.Items.Add("Undo last automatic layout", null, (_, _) => dispatcher.InvokeAsync(undoLayout));
+                undo.Enabled = canUndoLayout?.Invoke() == true;
+            }
             foreach (var entry in entries())
             {
                 var pen = new Forms.ToolStripMenuItem(entry.Title) { Checked = entry.Visible };

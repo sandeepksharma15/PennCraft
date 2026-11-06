@@ -94,7 +94,7 @@ public partial class MainWindow : Window
 
     private void ScheduleSave()
     {
-        if (!IsLoaded) return;
+        if (!IsLoaded || transferBusy) return;
         saveTimer.Stop();
         saveTimer.Start();
     }
@@ -238,6 +238,12 @@ public partial class MainWindow : Window
     private void ShowPenMenu(FrameworkElement target)
     {
         var menu = new ContextMenu();
+        var arrange = new MenuItem { Header = "Arrange Pens automatically", IsEnabled = CanArrange };
+        arrange.Click += (_, _) => ArrangeRequested?.Invoke();
+        menu.Items.Add(arrange);
+        var undo = new MenuItem { Header = "Undo last automatic layout", IsEnabled = CanUndoLayout?.Invoke() == true };
+        undo.Click += (_, _) => UndoLayoutRequested?.Invoke();
+        menu.Items.Add(undo);
         var rename = new MenuItem { Header = "Rename Pen" };
         rename.Click += (_, _) => Dispatcher.InvokeAsync(BeginEditing);
         menu.Items.Add(rename);

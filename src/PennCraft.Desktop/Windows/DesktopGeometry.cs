@@ -83,6 +83,34 @@ internal static partial class DesktopGeometry
             throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
     }
 
+    internal static Rect Bounds(Window window)
+    {
+        if (!GetWindowRect(new WindowInteropHelper(window).EnsureHandle(), out var bounds))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        return new Rect(bounds.Left, bounds.Top, bounds.Right - bounds.Left, bounds.Bottom - bounds.Top);
+    }
+
+    internal static (Rect WorkArea, double Scale) PrimaryLayoutScreen()
+    {
+        var screen = System.Windows.Forms.Screen.PrimaryScreen
+            ?? throw new InvalidOperationException("Windows could not locate the primary screen.");
+        var area = screen.WorkingArea;
+        return (new Rect(area.X, area.Y, area.Width, area.Height), LayoutScale(screen));
+    }
+
+    internal static string DisplayLayoutStamp() => string.Join("|",
+        System.Windows.Forms.Screen.AllScreens.OrderBy(screen => screen.DeviceName, StringComparer.Ordinal)
+            .Select(screen => FormattableString.Invariant(
+                $"{screen.DeviceName}:{screen.Bounds.X},{screen.Bounds.Y},{screen.Bounds.Width},{screen.Bounds.Height}:{screen.WorkingArea.X},{screen.WorkingArea.Y},{screen.WorkingArea.Width},{screen.WorkingArea.Height}:{LayoutScale(screen)}")));
+
+    private static double LayoutScale(System.Windows.Forms.Screen screen)
+    {
+        var point = new ScreenPoint(screen.Bounds.Left + screen.Bounds.Width / 2, screen.Bounds.Top + screen.Bounds.Height / 2);
+        if (GetDpiForMonitor(MonitorFromPoint(point, 2), 0, out var dpi, out _) != 0 || dpi == 0)
+            throw new InvalidOperationException("Windows could not determine display scaling.");
+        return dpi / 96.0;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     private struct NativeRect { public int Left, Top, Right, Bottom; }
     private delegate bool WindowCallback(nint hwnd, nint value);
