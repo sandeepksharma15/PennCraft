@@ -11,6 +11,7 @@ internal sealed class WorkspaceStore(string directory)
     internal string TransferJournalPath => Path.Combine(directory, "transfers.json");
     internal bool IsUninitialized => !File.Exists(IndexPath) && !File.Exists(SettingsPath("Default"))
         && (!Directory.Exists(Path.Combine(directory, "Pens")) || !Directory.EnumerateFileSystemEntries(Path.Combine(directory, "Pens")).Any());
+    internal string SavedLayoutsPath => Path.Combine(directory, "saved-layouts.json");
     internal string FirstRunReportPath => Path.Combine(directory, "first-run-report.json");
     internal string RecycleBinStatePath => Path.Combine(directory, "recycle-bin-visibility.json");
     private string IndexPath => Path.Combine(directory, "workspace.json");

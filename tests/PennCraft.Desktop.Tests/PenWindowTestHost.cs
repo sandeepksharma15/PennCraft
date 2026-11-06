@@ -7,7 +7,7 @@ namespace PennCraft.Desktop.Tests;
 /// <summary>Runs an isolated settings-backed Pen on its own STA dispatcher.</summary>
 internal static class PenWindowTestHost
 {
-    internal static async Task RunAsync(bool portal, Func<MainWindow, PenSettingsStore, string, Task> test, int itemCount = 1)
+    internal static async Task RunAsync(bool portal, Func<MainWindow, PenSettingsStore, string, Task> test, int itemCount = 1, string? penId = null)
     {
         var root = Path.Combine(Path.GetTempPath(), "PennCraft-window-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
@@ -31,7 +31,7 @@ internal static class PenWindowTestHost
                 MainWindow? window = null;
                 try
                 {
-                    window = new MainWindow(store, Guid.NewGuid().ToString("N"));
+                    window = new MainWindow(store, penId ?? Guid.NewGuid().ToString("N"));
                     window.Show();
                     await test(window, store, root);
                     completion.TrySetResult();
