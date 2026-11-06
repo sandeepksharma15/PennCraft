@@ -9,7 +9,7 @@ Actions are pinned. Package building has read-only repository permissions. Only 
 ## Prepare
 
 1. Update Version.props and create matching docs/releases/vVERSION.md. Keep numeric file/assembly versions consistent.
-2. Update limitations and the beta guide. Review .NET updates: bundled runtimes need new releases to receive security fixes.
+2. Update README download links, limitations and the beta guide. Review .NET updates: bundled runtimes need new releases to receive security fixes.
 3. Use a feature branch, pass CI, review packages, and complete manual Windows 11 acceptance for claimed behavior.
 4. Merge after checks pass and verify master CI.
 
