@@ -12,6 +12,7 @@ public partial class MainWindow
     private string[] DisplayPaths => IsPortal ? portalPaths : settings.ItemPaths;
     private readonly DispatcherTimer portalTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private bool portalRefreshBusy;
+    private Task portalInitialLoad = Task.CompletedTask;
 
     private void InitializePortal()
     {
@@ -19,7 +20,7 @@ public partial class MainWindow
         EmptyHint.Text = "This folder is empty";
         portalTimer.Tick += async (_, _) => await RefreshPortalAsync();
         portalTimer.Start();
-        _ = RefreshPortalAsync();
+        portalInitialLoad = RefreshPortalAsync();
     }
 
     private async Task RefreshPortalAsync()

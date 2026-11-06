@@ -26,3 +26,7 @@ Visual grouping must not silently move or delete files. Explicit filesystem oper
 ## One-time setup and virtual items
 
 Fresh workspaces receive Documents, Programs and Folders Pens with the fixed first-run grouping. Existing workspaces are untouched. Recycle Bin references support opening, Windows menus and Pen transfers; desktop icon visibility is restored on removal or normal exit. See [Milestone 0.10](milestone-0.10.md).
+
+## Automatic layout
+
+Arrange visible Pens and Portals on the primary monitor with equal widths, content-aware heights, consistent margins and right-to-left columns. Keep hidden containers unchanged; refuse partial layouts when space is insufficient. Undo the previous arrangement in the current session. See [Milestone 0.11](milestone-0.11.md).

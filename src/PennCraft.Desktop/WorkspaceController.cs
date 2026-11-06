@@ -16,6 +16,11 @@ internal sealed class WorkspaceController : IDisposable
     private readonly TrayCommands tray;
     private readonly PenTransferCoordinator transfers;
     private readonly PenDeletionService deletions;
+    private readonly LayoutTransaction layouts;
+    private bool layoutBusy;
+    private bool WorkspaceBusy => organizationBusy || layoutBusy;
+    private Dictionary<string, Rect>? undoLayout;
+    private string? undoDisplayStamp;
     private readonly DesktopCreationGesture gesture;
     private WorkspaceSettings settings;
     private CreationPreview? preview;
@@ -36,6 +41,8 @@ internal sealed class WorkspaceController : IDisposable
         deletions = new PenDeletionService(store, desktop);
         deletions.Recover();
         settings = store.Load();
+        layouts = new LayoutTransaction(store);
+        layouts.Recover();
         transfers = new PenTransferCoordinator(store, desktop, () => pens);
         transfers.Recover();
         foreach (var id in settings.PenIds) OpenPen(id);
@@ -48,15 +55,18 @@ internal sealed class WorkspaceController : IDisposable
         tray = new TrayCommands(app.Dispatcher,
             () => pens.Select(pen => new PenTrayEntry(pen.PenTitle, pen.UserVisible, pen.ShowPen, pen.HidePen, pen.ResetPosition)),
             () => pens.ForEach(pen => pen.ShowPen()), () => pens.ForEach(pen => pen.HidePen()),
-            () => { if (!organizationBusy) CreatePen(null); }, () => settings.CreationEnabled, ToggleCreation, Exit);
+            () => { if (!WorkspaceBusy) CreatePen(null); }, () => settings.CreationEnabled, ToggleCreation, Exit, ArrangePens, UndoLayout, CanUndoLayout);
     }
 
     private MainWindow OpenPen(string id)
     {
         var pen = new MainWindow(new PenSettingsStore(store.SettingsPath(id)), id) { Transfers = transfers };
-        if ((deletions.BlockedReason ?? transfers.BlockedReason) is { } error) pen.BlockTransferRecovery(error);
+        if ((layouts.BlockedReason ?? deletions.BlockedReason ?? transfers.BlockedReason) is { } error) pen.BlockTransferRecovery(error);
         pen.DeleteEmptyRequested = DeleteEmptyPen;
         pen.DeleteRequested = DeletePen;
+        pen.ArrangeRequested = ArrangePens;
+        pen.UndoLayoutRequested = UndoLayout;
+        pen.CanUndoLayout = CanUndoLayout;
         pens.Add(pen);
         pen.SettingsSaved += (_, _) => RearmOrganizationOffer(pen);
         pen.Show();
@@ -76,7 +86,7 @@ internal sealed class WorkspaceController : IDisposable
 
     private void DeleteContainer(MainWindow pen, bool portal)
     {
-        if (disposed || organizationBusy || !pens.Contains(pen) || pens.Any(window => !window.CanBeginTransfer(false)))
+        if (disposed || WorkspaceBusy || !pens.Contains(pen) || pens.Any(window => !window.CanBeginTransfer(false)))
         {
             pen.SetTransferStatus("Finish the current operation or recovery before deleting an empty Pen.");
             return;
@@ -114,7 +124,7 @@ internal sealed class WorkspaceController : IDisposable
 
     private void CreatePortal(Rect region)
     {
-        if (organizationBusy) return;
+        if (WorkspaceBusy) return;
         var picker = new Microsoft.Win32.OpenFolderDialog { Title = "Choose a folder for the Portal", Multiselect = false };
         if (picker.ShowDialog() == true) CreatePen(region, picker.FolderName);
     }
@@ -162,7 +172,7 @@ internal sealed class WorkspaceController : IDisposable
 
     private void Exit()
     {
-        if (organizationBusy || pens.Any(pen => !pen.CanExit))
+        if (WorkspaceBusy || pens.Any(pen => !pen.CanExit))
         {
             MessageBox.Show("Wait for the current item operation to finish before exiting.", "PennCraft");
             return;
@@ -239,7 +249,7 @@ internal sealed class WorkspaceController : IDisposable
 
     private void RearmOrganizationOffer(MainWindow? changed = null)
     {
-        if (!settings.OrganizationOfferDismissed || organizationBusy) return;
+        if (!settings.OrganizationOfferDismissed || WorkspaceBusy) return;
         if (changed is not null && OrganizationOfferPolicy.IsEligible([changed.TransferSnapshot()])) return;
         var next = settings with { OrganizationOfferDismissed = false };
         try { store.Save(next); settings = next; }
@@ -248,6 +258,96 @@ internal sealed class WorkspaceController : IDisposable
             Diagnostics.Write($"Organization offer preference could not be saved: {exception.GetType().Name}");
         }
     }
+
+    private bool CanUndoLayout() => !WorkspaceBusy && undoLayout is { Count: > 0 }
+        && undoLayout.Keys.All(id => pens.Any(pen => pen.PenId == id && pen.UserVisible)) && pens.All(pen => pen.CanArrange);
+
+    private async void ArrangePens()
+    {
+        if (disposed || WorkspaceBusy) return;
+        layoutBusy = true;
+        try
+        {
+            await Task.WhenAll(pens.Select(pen => pen.LayoutReady));
+            if (disposed) return;
+            if (pens.Any(pen => !pen.CanArrange))
+            {
+                MessageBox.Show("Wait for item operations and folder refreshes to finish before arranging Pens.", "PennCraft");
+                return;
+            }
+            var selected = pens.Where(pen => pen.UserVisible).ToArray();
+            if (selected.Length == 0)
+            {
+                MessageBox.Show("Show at least one Pen or Folder Portal to arrange.", "PennCraft");
+                return;
+            }
+            var screen = DesktopGeometry.PrimaryLayoutScreen();
+            var stamp = DesktopGeometry.DisplayLayoutStamp();
+            var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth);
+            var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, selected.Select(pen => pen.MeasureLayoutItem(width)));
+            if (plan.Error is { } error) { MessageBox.Show(error, "PennCraft"); return; }
+            var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
+            if (CommitLayout(plan.Bounds))
+            {
+                undoLayout = previous;
+                undoDisplayStamp = stamp;
+            }
+        }
+        catch (Exception exception) when (LayoutError(exception))
+        {
+            MessageBox.Show("Windows could not measure or place the layout. Check the display setup and try again.", "PennCraft");
+        }
+        finally { layoutBusy = false; }
+    }
+
+    private void UndoLayout()
+    {
+        if (disposed || !CanUndoLayout()) return;
+        layoutBusy = true;
+        try
+        {
+            if (DesktopGeometry.DisplayLayoutStamp() != undoDisplayStamp)
+            {
+                MessageBox.Show("The display setup changed. Arrange Pens again before using Undo.", "PennCraft");
+                return;
+            }
+            if (CommitLayout(undoLayout!)) { undoLayout = null; undoDisplayStamp = null; }
+        }
+        catch (Exception exception) when (LayoutError(exception))
+        {
+            MessageBox.Show("The previous layout could not be restored. Check the display setup and try again.", "PennCraft");
+        }
+        finally { layoutBusy = false; }
+    }
+
+    private bool CommitLayout(Dictionary<string, Rect> bounds)
+    {
+        var all = pens.ToArray();
+        var selected = all.Where(pen => bounds.ContainsKey(pen.PenId)).ToArray();
+        var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
+        foreach (var pen in all) pen.BeginLayout();
+        bool committed;
+        try
+        {
+            var before = selected.ToDictionary(pen => pen.PenId, pen => pen.TransferSnapshot());
+            committed = layouts.Execute(before, () =>
+            {
+                foreach (var pen in selected) pen.ApplyLayoutBounds(bounds[pen.PenId]);
+                return selected.ToDictionary(pen => pen.PenId, pen => pen.TransferSnapshot());
+            }, () =>
+            {
+                foreach (var pen in selected) pen.ApplyLayoutBounds(previous[pen.PenId]);
+            });
+        }
+        finally { foreach (var pen in all) pen.EndLayout(); }
+        if (layouts.BlockedReason is { } blocked)
+            foreach (var pen in all) pen.BlockTransferRecovery(blocked);
+        if (!committed) MessageBox.Show(layouts.BlockedReason ?? "The layout could not be saved. The previous arrangement was retained.", "PennCraft");
+        return committed;
+    }
+
+    private static bool LayoutError(Exception exception) => exception is System.ComponentModel.Win32Exception
+        or InvalidOperationException or ArgumentException or IOException;
 
     private async void SyncRecycleBin()
     {

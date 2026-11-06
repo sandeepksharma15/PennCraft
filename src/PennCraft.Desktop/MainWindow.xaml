@@ -1,5 +1,6 @@
 <Window x:Class="PennCraft.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:local="clr-namespace:PennCraft.Desktop"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PennCraft Pen" Width="600" Height="300" MinWidth="240" MinHeight="120"
         Left="100" Top="100" WindowStyle="None" ResizeMode="CanResize"
@@ -76,7 +77,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                    <ScrollViewer x:Name="ItemScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   CanContentScroll="False">
                         <ItemsControl x:Name="ItemGrid">
                             <ItemsControl.ItemsPanel>
@@ -86,7 +87,7 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Width="88" Height="86" Margin="2" Padding="4" CornerRadius="4"
+                                    <Border Width="{x:Static local:PenLayoutMetrics.TileWidth}" Height="{x:Static local:PenLayoutMetrics.TileHeight}" Margin="{x:Static local:PenLayoutMetrics.TileMargin}" Padding="4" CornerRadius="4"
                                             ToolTip="{Binding ToolTip}"
                                             PreviewMouseLeftButtonDown="ItemMouseDown"
                                             PreviewMouseLeftButtonUp="ItemMouseUp"
