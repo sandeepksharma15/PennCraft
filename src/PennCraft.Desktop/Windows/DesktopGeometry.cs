@@ -90,12 +90,37 @@ internal static partial class DesktopGeometry
         return new Rect(bounds.Left, bounds.Top, bounds.Right - bounds.Left, bounds.Bottom - bounds.Top);
     }
 
-    internal static (Rect WorkArea, double Scale) PrimaryLayoutScreen()
+    internal static (Rect WorkArea, double Scale, Point GridOrigin) PrimaryLayoutScreen()
     {
         var screen = System.Windows.Forms.Screen.PrimaryScreen
             ?? throw new InvalidOperationException("Windows could not locate the primary screen.");
         var area = screen.WorkingArea;
-        return (new Rect(area.X, area.Y, area.Width, area.Height), LayoutScale(screen));
+        return (new Rect(area.X, area.Y, area.Width, area.Height), LayoutScale(screen), new Point(screen.Bounds.Left, screen.Bounds.Top));
+    }
+
+    internal static bool GeometryKeyDown(int key) => (GetAsyncKeyState(key) & 0x8000) != 0;
+
+    internal static Point CursorPosition()
+    {
+        if (!GetCursorPos(out var point)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        return point.ToPoint();
+    }
+
+    internal static (ScreenGrid Grid, double Scale) GridAt(Point point)
+    {
+        var screen = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)point.X, (int)point.Y));
+        var scale = LayoutScale(screen);
+        return (ScreenGrid.AtScale(new Point(screen.Bounds.Left, screen.Bounds.Top), scale), scale);
+    }
+
+    internal static void Move(Window window, Point point)
+    {
+        var hwnd = new WindowInteropHelper(window).EnsureHandle();
+        // Settle WPF DPI-induced repositioning, rather than retrying a failed native call.
+        // Either placement failing aborts the gesture and invokes cancellation recovery.
+        for (var pass = 0; pass < 2; pass++)
+            if (!Native.SetWindowPos(hwnd, 0, (int)point.X, (int)point.Y, 0, 0, 0x0001 | 0x0004 | 0x0010))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
     }
 
     internal static string DisplayLayoutStamp() => string.Join("|",
@@ -117,6 +142,11 @@ internal static partial class DesktopGeometry
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool EnumWindows(WindowCallback callback, nint value);
+    [LibraryImport("user32.dll")]
+    private static partial short GetAsyncKeyState(int key);
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetCursorPos(out ScreenPoint point);
     [LibraryImport("user32.dll")]
     private static partial nint GetAncestor(nint hwnd, uint flags);
     [LibraryImport("user32.dll")]

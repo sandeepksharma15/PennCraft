@@ -284,7 +284,7 @@ internal sealed class WorkspaceController : IDisposable
             var screen = DesktopGeometry.PrimaryLayoutScreen();
             var stamp = DesktopGeometry.DisplayLayoutStamp();
             var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth);
-            var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, selected.Select(pen => pen.MeasureLayoutItem(width)));
+            var plan = PenLayoutPlanner.Plan(screen.WorkArea, screen.Scale, width, selected.Select(pen => pen.MeasureLayoutItem(width)), screen.GridOrigin);
             if (plan.Error is { } error) { MessageBox.Show(error, "PennCraft"); return; }
             var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
             if (CommitLayout(plan.Bounds))
@@ -326,7 +326,7 @@ internal sealed class WorkspaceController : IDisposable
         var selected = all.Where(pen => bounds.ContainsKey(pen.PenId)).ToArray();
         var previous = selected.ToDictionary(pen => pen.PenId, DesktopGeometry.Bounds);
         foreach (var pen in all) pen.BeginLayout();
-        bool committed;
+        var committed = false;
         try
         {
             var before = selected.ToDictionary(pen => pen.PenId, pen => pen.TransferSnapshot());
@@ -339,7 +339,7 @@ internal sealed class WorkspaceController : IDisposable
                 foreach (var pen in selected) pen.ApplyLayoutBounds(previous[pen.PenId]);
             });
         }
-        finally { foreach (var pen in all) pen.EndLayout(); }
+        finally { foreach (var pen in all) pen.EndLayout(committed); }
         if (layouts.BlockedReason is { } blocked)
             foreach (var pen in all) pen.BlockTransferRecovery(blocked);
         if (!committed) MessageBox.Show(layouts.BlockedReason ?? "The layout could not be saved. The previous arrangement was retained.", "PennCraft");
