@@ -57,6 +57,7 @@ public partial class MainWindow : Window
         {
             DisposeItems();
             shellTimer.Stop();
+            geometryKeyTimer.Stop();
             saveTimer.Stop();
             if (!deleted) SaveSettings();
             surface?.Dispose();

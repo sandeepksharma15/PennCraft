@@ -98,6 +98,8 @@ internal static partial class DesktopGeometry
         return (new Rect(area.X, area.Y, area.Width, area.Height), LayoutScale(screen), new Point(screen.Bounds.Left, screen.Bounds.Top));
     }
 
+    internal static bool GeometryKeyDown(int key) => (GetAsyncKeyState(key) & 0x8000) != 0;
+
     internal static Point CursorPosition()
     {
         if (!GetCursorPos(out var point)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
@@ -138,6 +140,8 @@ internal static partial class DesktopGeometry
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool EnumWindows(WindowCallback callback, nint value);
+    [LibraryImport("user32.dll")]
+    private static partial short GetAsyncKeyState(int key);
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetCursorPos(out ScreenPoint point);
