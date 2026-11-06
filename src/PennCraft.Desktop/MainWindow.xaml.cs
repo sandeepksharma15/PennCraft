@@ -86,6 +86,7 @@ public partial class MainWindow : Window
         ApplyFoldedPresentation();
         TitleLabel.Text = settings.Title;
         ApplyBackground();
+        ApplyItemScale();
     }
 
     private void ApplyBackground() => PenBody.Background = new SolidColorBrush(Color.FromArgb(
@@ -220,74 +221,5 @@ public partial class MainWindow : Window
         TitleLabel.Visibility = Visibility.Visible;
         surface?.SetEditing(false);
         SaveSettings();
-    }
-
-    private void OpenMenu(object sender, RoutedEventArgs e) => ShowPenMenu((FrameworkElement)sender);
-
-    private void ShowPenMenu(FrameworkElement target)
-    {
-        var menu = new ContextMenu();
-        var arrange = new MenuItem { Header = "Arrange Pens automatically", IsEnabled = CanArrange };
-        arrange.Click += (_, _) => ArrangeRequested?.Invoke();
-        menu.Items.Add(arrange);
-        var undo = new MenuItem { Header = "Undo last automatic layout", IsEnabled = CanUndoLayout?.Invoke() == true };
-        undo.Click += (_, _) => UndoLayoutRequested?.Invoke();
-        menu.Items.Add(undo);
-        var fold = new MenuItem { Header = settings.IsFolded ? "Unfold Pen" : "Fold Pen", IsEnabled = CanExit };
-        fold.Click += (_, _) => ToggleFold();
-        menu.Items.Add(fold);
-        var rename = new MenuItem { Header = "Rename Pen" };
-        rename.Click += (_, _) => Dispatcher.InvokeAsync(BeginEditing);
-        menu.Items.Add(rename);
-        if (!IsPortal)
-        {
-            var recycle = new MenuItem { Header = "Add Recycle Bin", IsEnabled = CanExit && !transferRecoveryBlocked && !moveSettingsBlocked };
-            recycle.Click += (_, _) =>
-            {
-                if (!CanExit || transferRecoveryBlocked || moveSettingsBlocked) return;
-                settings = settings with { ItemPaths = Items.PenMembership.Normalize(settings.ItemPaths.Append(Items.VirtualDesktopItem.RecycleBin)) };
-                RefreshItemViews();
-                if (!SaveSettings()) PauseMoves();
-            };
-            menu.Items.Add(recycle);
-        }
-        var opacity = new MenuItem { Header = "Background opacity" };
-        foreach (var value in new[] { 0.35, 0.55, 0.78, 1.0 })
-        {
-            var item = new MenuItem
-            {
-                Header = $"{value:P0}",
-                IsCheckable = true,
-                IsChecked = Math.Abs(settings.BackgroundOpacity - value) < 0.01
-            };
-            item.Click += (_, _) =>
-            {
-                settings = settings with { BackgroundOpacity = value };
-                ApplyBackground();
-                SaveSettings();
-            };
-            opacity.Items.Add(item);
-        }
-        menu.Items.Add(opacity);
-        var storage = new MenuItem { Header = IsPortal ? "Open linked folder" : "Open Pen storage folder" };
-        storage.Click += (_, _) => ItemStatus.Text = IsPortal
-            ? ShellItemLauncher.Open(settings.PortalFolder!) ?? string.Empty
-            : moves is null
-            ? "Windows could not locate the user desktop."
-            : ShellItemLauncher.Open(moves.StorageDirectory) ?? string.Empty;
-        menu.Items.Add(storage);
-        var hide = new MenuItem { Header = "Hide Pen" };
-        hide.Click += (_, _) => HidePen();
-        menu.Items.Add(hide);
-        var delete = new MenuItem
-        {
-            Header = IsPortal ? "Delete Folder Portal…" : "Delete Pen…",
-            IsEnabled = CanExit && (IsPortal || settings.ItemPaths.Length == 0),
-            ToolTip = "Removes the container. Empty an ordinary Pen before deleting it."
-        };
-        delete.Click += (_, _) => DeleteRequested?.Invoke(this);
-        menu.Items.Add(delete);
-        menu.PlacementTarget = target;
-        menu.IsOpen = true;
     }
 }

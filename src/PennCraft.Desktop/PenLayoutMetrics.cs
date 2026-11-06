@@ -14,5 +14,9 @@ public static class PenLayoutMetrics
     internal const double CellWidth = TileWidth + 2 * TileGap;
     internal const double CellHeight = TileHeight + 2 * TileGap;
     internal const double Margin = 24;
-    internal static double CommonWidth(double scrollbarWidth) => Math.Max(600, Columns * CellWidth + 20 + scrollbarWidth);
+    internal static double CommonWidth(double scrollbarWidth, double itemScale = 1) =>
+        Math.Max(600, Columns * CellWidth * itemScale + 20 + scrollbarWidth);
+
+    internal static int ColumnCount(double width, double scrollbarWidth, double itemScale) =>
+        Math.Max(1, (int)Math.Floor((width - 20 - scrollbarWidth) / (CellWidth * itemScale)));
 }

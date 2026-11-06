@@ -37,8 +37,8 @@ public partial class MainWindow
     {
         if (e.Key != Key.Apps && !(e.Key == Key.F10 && Keyboard.Modifiers == ModifierKeys.Shift)) return;
         var selected = items.FirstOrDefault(item => item.IsSelected);
-        if (selected is null) return;
         e.Handled = true;
+        if (selected is null || settings.IsFolded) { ShowPenMenu(this); return; }
         var element = ItemGrid.ItemContainerGenerator.ContainerFromItem(selected) as FrameworkElement;
         await ShowItemMenuAsync(selected, (element ?? this).PointToScreen(new Point(24, 24)));
     }
