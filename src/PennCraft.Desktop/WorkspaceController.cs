@@ -60,7 +60,7 @@ internal sealed partial class WorkspaceController : IDisposable
             () => pens.Select(pen => new PenTrayEntry(pen.PenTitle, pen.UserVisible, pen.ShowPen, pen.HidePen, pen.ResetPosition)),
             () => pens.ForEach(pen => pen.ShowPen()), () => pens.ForEach(pen => pen.HidePen()),
             () => { if (!WorkspaceBusy) CreatePen(null); }, () => settings.CreationEnabled, ToggleCreation, Exit, ArrangePens, UndoLayout, CanUndoLayout,
-            SaveCurrentLayout, ManageSavedLayouts, UndoSavedLayout, CanUndoSavedLayout);
+            SaveCurrentLayout, ManageSavedLayouts, UndoSavedLayout, CanUndoSavedLayout, () => new AboutDialog().ShowDialog());
     }
 
     private MainWindow OpenPen(string id)

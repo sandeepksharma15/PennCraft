@@ -65,7 +65,7 @@ public sealed class SavedLayoutWindowTests
             Assert.Equal(metadata.PortalFolder, settingsStore.Load().PortalFolder);
             Assert.Equal(metadata.Title, settingsStore.Load().Title);
 
-            var restarted = new MainWindow(settingsStore, "Default");
+            var restarted = new MainWindow(settingsStore, "Default", root);
             try
             {
                 await restarted.LayoutReady;

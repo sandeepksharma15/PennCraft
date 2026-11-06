@@ -1,5 +1,7 @@
 # Milestone 0.10 — one-time desktop setup and Recycle Bin
 
+> The public beta now asks before first-run organization. Choose No for an empty workspace; see [current beta guide](beta-guide.md).
+
 ## First-run organization
 
 On a genuinely fresh profile, PennCraft automatically creates Documents, Programs and Folders Pens. It moves immediate desktop PDF files (case-insensitive .pdf) into Documents, .lnk shortcut files into Programs, and immediate desktop directories into Folders. Other extensions stay on the desktop. Hidden/system items and symbolic links/junctions are skipped. Folder contents move with their folder; no recursive classification is performed. Shortcut targets are never moved.

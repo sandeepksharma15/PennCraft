@@ -49,7 +49,7 @@ public sealed class PenFoldingTests
             Assert.True(window.ToggleFold());
             window.ExitApplication();
 
-            var restored = new MainWindow(store, Guid.NewGuid().ToString("N"));
+            var restored = new MainWindow(store, Guid.NewGuid().ToString("N"), root);
             try
             {
                 await restored.LayoutReady;

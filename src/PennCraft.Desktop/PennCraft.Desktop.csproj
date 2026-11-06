@@ -2,6 +2,11 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/PennCraft.ico</ApplicationIcon>
+    <Product>PennCraft</Product>
+    <Description>Desktop organization for Windows</Description>
+    <Copyright>Copyright © 2026 PennCraft contributors</Copyright>
+    <PublishTrimmed>false</PublishTrimmed>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
@@ -11,6 +16,9 @@
     <AssemblyName>PennCraft</AssemblyName>
     <RootNamespace>PennCraft.Desktop</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/PennCraft.ico" LogicalName="PennCraft.AppIcon" />
+  </ItemGroup>
   <ItemGroup>
     <Using Include="System" />
     <Using Include="System.Collections.Generic" />

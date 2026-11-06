@@ -26,7 +26,7 @@ public partial class MainWindow
         if (IsPortal) { InitializePortal(); return; }
         foreach (var path in settings.ItemPaths) AddItemView(path);
         UpdateEmptyHint();
-        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        var desktop = itemDesktopDirectory;
         if (string.IsNullOrWhiteSpace(desktop))
         {
             ItemStatus.Text = "Windows could not locate the user desktop. Physical moves are unavailable.";

@@ -2,41 +2,42 @@
 
 **Make room for everything.**
 
-PennCraft is an open-source Windows desktop organizer for arranging shortcuts, files, and folders into customizable enclosures called **Pens**. The long-term goal is a lightweight, reliable, extensible workspace for Windows.
+PennCraft is an open-source Windows desktop organizer. Group files, shortcuts and folders into **Pens**, or show a live folder through a **Folder Portal**.
 
-> Early development: Milestone 0.15 adds named saved layouts, restore and Undo for Pens and Folder Portals. See [usage and Windows checks](docs/milestone-0.15.md).
+<img src="src/PennCraft.Desktop/Assets/PennCraft.png" alt="PennCraft icon" width="96"/>
 
-## Planned capabilities
+## Beta downloads
 
-- Create, move, resize, and personalize Pens.
-- Preserve layouts across sessions and display changes.
-- Show live folder contents through Portals.
-- Organize items automatically using configurable Rules.
-- Fold Pens, navigate workspaces, and save layouts.
+[Download v0.1.0-beta.1](https://github.com/sandeepksharma15/PennCraft/releases/tag/v0.1.0-beta.1) · [Beta guide](docs/beta-guide.md) · [Report a problem](https://github.com/sandeepksharma15/PennCraft/issues/new/choose)
 
-## Technology
+Windows 11 x64. Choose the per-user installer or extract the full portable ZIP. Both include .NET. This unsigned beta may trigger Windows publisher/reputation warnings. Verify official downloads and checksums, and back up important files before testing.
 
-C# · .NET 10 · WPF · Windows 11 · xUnit v3.
+## Features
 
-## Repository
+- Create, rename, move, resize, fold and hide Pens.
+- Move items between desktop, Pens and live Folder Portals.
+- Use native Windows item commands.
+- Align containers with grid snapping and automatic layout.
+- Choose item size and opacity.
+- Save/restore named layouts with Undo.
 
-- `docs/` — [architecture](docs/architecture.md), [features](docs/features.md), and [roadmap](docs/roadmap.md).
-- `src/PennCraft.Desktop/` — WPF Pen UI, item membership and isolated Windows integration.
-- `tests/PennCraft.Desktop.Tests/` — xUnit v3 membership, persistence, geometry and native Windows tests.
+First launch asks before organizing your desktop. Transfers move real files into hidden desktop storage; layouts capture presentation rather than backing up files. Uninstall retains settings and managed files. See the [guide](docs/beta-guide.md) for backup and recovery.
 
-## Build
+## Status
 
-Requires Windows, .NET 10 SDK, and the Windows Desktop targeting pack.
+Shell placement, Explorer restarts, virtual desktops, mixed-DPI monitors and third-party providers need wider manual testing. Tabs, multi-selection, workspace pages, monitor profiles and automatic updates are deferred. ARM64 and Windows 10 are not validated. Automated CI/package checks are distinct from interactive Windows 11 acceptance.
+
+## Build and contribute
+
+C# · .NET 10 · WPF · xUnit v3. Requires Windows and .NET 10 SDK.
 
 ```powershell
 dotnet restore PennCraft.slnx
-dotnet build PennCraft.slnx
-dotnet test PennCraft.slnx
+dotnet build PennCraft.slnx -c Release
+dotnet test PennCraft.slnx -c Release
 dotnet run --project src/PennCraft.Desktop
 ```
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Windows shell integration remains experimental; CI does not replace interactive desktop acceptance.
+[Contributing](CONTRIBUTING.md) · [Releasing](docs/releasing.md) · [Architecture](docs/architecture.md) · [Roadmap](docs/roadmap.md)
 
 Licensed under [MIT](LICENSE).

@@ -49,3 +49,7 @@ Grouped container menus and persisted per-container item scaling (75%, 100%, 125
 ## Milestone 0.15
 
 Named saved layouts capture container presentation, with restore, rename/delete, session Undo and presentation-only startup recovery. Restore checks the monitor setup and preserves current contents and metadata. Tabs remain deferred. See [usage and checks](milestone-0.15.md).
+
+## First public beta — 0.1.0-beta.1
+
+Branding, version/About, opt-in first-run organization, error logging, unsigned self-contained Windows x64 installer/portable packages, checksums and verified prerelease automation. See [beta guide](beta-guide.md) and [release process](releasing.md). Tabs remain deferred.

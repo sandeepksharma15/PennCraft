@@ -426,3 +426,10 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Release staging and verification results
+artifacts/
+
+# Keep versioned release notes despite the generic Releases build-output rule
+!docs/releases/
+!docs/releases/*.md
