@@ -10,7 +10,7 @@ internal static class PenLayoutPlanner
 {
     internal static PenLayoutPlan Plan(Rect workArea, double scale, double width, IEnumerable<PenLayoutItem> source)
     {
-        var items = source.OrderBy(item => item.CurrentBounds.Top).ThenByDescending(item => item.CurrentBounds.Left).ToArray();
+        var items = source.OrderByDescending(item => item.CurrentBounds.Left).ThenBy(item => item.CurrentBounds.Top).ToArray();
         if (workArea.IsEmpty || !Finite(workArea.Left, workArea.Top, workArea.Width, workArea.Height, scale, width)
             || scale <= 0 || width < PenLayoutMetrics.CommonWidth(0)
             || items.Any(item => string.IsNullOrWhiteSpace(item.Id) || item.ItemCount < 0

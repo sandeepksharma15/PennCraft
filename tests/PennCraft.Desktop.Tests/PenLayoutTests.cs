@@ -50,6 +50,18 @@ public sealed class PenLayoutTests
     }
 
     [Fact]
+    public void RepeatingLayoutDoesNotReshuffleUnchangedColumns()
+    {
+        var area = new Rect(0, 0, 1920, 1080);
+        var items = Enumerable.Range(0, 4).Select(index => new PenLayoutItem(index.ToString(),
+            new Rect(100, index * 10, 300, 200), 1, 60)).ToArray();
+        var first = PenLayoutPlanner.Plan(area, 1, 600, items);
+        var second = PenLayoutPlanner.Plan(area, 1, 600, items.Select(item => item with { CurrentBounds = first.Bounds[item.Id] }));
+        Assert.Null(second.Error);
+        foreach (var (id, bounds) in first.Bounds) Assert.Equal(bounds, second.Bounds[id]);
+    }
+
+    [Fact]
     public void CapacityFailureReturnsNoPartialPlacement()
     {
         var items = Enumerable.Range(0, 10).Select(index => new PenLayoutItem(index.ToString(),
@@ -64,7 +76,7 @@ public sealed class PenLayoutTests
     }
 
     [Fact]
-    public void OrderingPreservesCurrentTopThenRightToLeftAndRejectsInvalidInput()
+    public void OrderingReadsColumnsRightToLeftThenTopToBottomAndRejectsInvalidInput()
     {
         var plan = PenLayoutPlanner.Plan(new Rect(0, 0, 1920, 1080), 1, 600,
             [new("left", new Rect(0, 10, 300, 200), 0, 60), new("right", new Rect(500, 10, 300, 200), 0, 60)]);

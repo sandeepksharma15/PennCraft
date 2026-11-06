@@ -8,7 +8,7 @@ Choose **Arrange Pens automatically** from the tray or any Pen/Portal hamburger 
 - Height: content rows at six columns, with at least three rows. Header, border, inset and measured status text are included.
 - Outer margins and inter-Pen gaps: 24 device-independent pixels, scaled to the primary display.
 - Start at the usable area's top-right, stack downward, then continue in a column to the left. Respect the taskbar and all work-area edges.
-- Preserve current top-to-bottom order; ties use current right-to-left order, then stable workspace order.
+- Read current columns from right to left, and Pens top to bottom within each column; ties use stable workspace order. Repeating the command with unchanged contents does not reshuffle the layout.
 - A tall container is capped to the usable height and scrolls.
 - If all containers cannot fit at these minimums, explain the required/available columns and change no bounds. There is no partial placement, overlap or automatic shrinking below the minimum.
 
