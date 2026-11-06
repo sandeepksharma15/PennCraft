@@ -18,7 +18,7 @@ public sealed class PenLayoutWindowTests
         var file = Path.Combine(root, "pen.json");
         var paths = Enumerable.Range(0, 18).Select(index => Path.Combine(root, $"Item{index}.txt")).ToArray();
         foreach (var path in paths) File.WriteAllText(path, "keep");
-        Assert.True(new PenSettingsStore(file).Save(new PenSettings { ItemPaths = paths }));
+        Assert.True(new PenSettingsStore(file).Save(new PenSettings { ItemPaths = paths, Width = 340, Height = 200 }));
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var token = TestContext.Current.CancellationToken;
         var thread = new Thread(() =>
