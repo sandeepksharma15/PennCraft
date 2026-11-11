@@ -14,7 +14,7 @@ namespace PennCraft.Desktop;
 public partial class MainWindow
 {
     private readonly List<FileSystemWatcher> itemWatchers = [];
-    private HashSet<string> watchedMembers = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> watchedMembers = [with(StringComparer.OrdinalIgnoreCase)];
     private readonly DispatcherTimer itemRefreshTimer = new() { Interval = TimeSpan.FromMilliseconds(450) };
     private bool itemMenuBusy;
     private bool itemReconciliationBusy;

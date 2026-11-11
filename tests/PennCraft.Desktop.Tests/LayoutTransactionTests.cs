@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text.Json;
 using Xunit;
 
@@ -65,7 +64,7 @@ public sealed class LayoutTransactionTests
         {
             using var locked = new FileStream(workspace.SettingsPath("Default"), FileMode.Open, FileAccess.Read, FileShare.Read);
             Assert.False(service.Execute(new() { ["Default"] = store.Load() },
-                () => { Assert.Fail("Must not apply"); return new(); }, () => Assert.Fail("Must not roll back untouched UI")));
+                () => { Assert.Fail("Must not apply"); return []; }, () => Assert.Fail("Must not roll back untouched UI")));
             Assert.False(File.Exists(service.JournalPath));
         });
     }
@@ -124,8 +123,14 @@ public sealed class LayoutTransactionTests
             var workspace = new WorkspaceStore(root);
             workspace.Save(new WorkspaceSettings(1, ["Default"]));
             var store = new PenSettingsStore(workspace.SettingsPath("Default"));
-            Assert.True(store.Save(new PenSettings { Title = "Keep title", Left = -100, Width = 400, Height = 250,
-                ItemPaths = [Path.Combine(root, "Reference.txt")] }));
+            Assert.True(store.Save(new PenSettings
+            {
+                Title = "Keep title",
+                Left = -100,
+                Width = 400,
+                Height = 250,
+                ItemPaths = [Path.Combine(root, "Reference.txt")]
+            }));
             action(workspace, store, new LayoutTransaction(workspace));
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, recursive: true); }

@@ -43,14 +43,14 @@ internal sealed class SavedLayoutStore(string filePath)
         var layouts = Load();
         if (!layouts.Any(layout => layout.Id == id)) throw new InvalidDataException("This saved layout no longer exists.");
         CheckName(name, layouts, id);
-        Write(layouts.Select(layout => layout.Id == id ? layout with { Name = name.Trim() } : layout).ToArray());
+        Write([.. layouts.Select(layout => layout.Id == id ? layout with { Name = name.Trim() } : layout)]);
     }
 
     internal void Delete(string id)
     {
         var layouts = Load();
         if (!layouts.Any(layout => layout.Id == id)) throw new InvalidDataException("This saved layout no longer exists.");
-        Write(layouts.Where(layout => layout.Id != id).ToArray());
+        Write([.. layouts.Where(layout => layout.Id != id)]);
     }
 
     private static void CheckName(string name, SavedLayout[] layouts, string? id)

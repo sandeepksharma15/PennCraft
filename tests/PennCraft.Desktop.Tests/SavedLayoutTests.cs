@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text.Json;
 using System.Windows;
 using Xunit;
@@ -82,7 +81,9 @@ public sealed class SavedLayoutTests
     {
         var current = new PenSettings
         {
-            Title = "Current title", PortalFolder = @"D:\Current", ItemPaths = [@"C:\Current.txt"],
+            Title = "Current title",
+            PortalFolder = @"D:\Current",
+            ItemPaths = [@"C:\Current.txt"],
             BackgroundOpacity = 0.55
         };
         var saved = Presentation() with { IsVisible = false, IsFolded = true, ItemScale = 1.5 };
@@ -119,7 +120,7 @@ public sealed class SavedLayoutTests
 
             using var locked = new FileStream(workspace.SettingsPath("Default"), FileMode.Open, FileAccess.Read, FileShare.Read);
             Assert.False(transaction.Execute(new() { ["Default"] = original },
-                () => { Assert.Fail("Preflight must stop"); return new(); }, () => Assert.Fail("No window changed")));
+                () => { Assert.Fail("Preflight must stop"); return []; }, () => Assert.Fail("No window changed")));
             Assert.Null(transaction.BlockedReason); // A cleared journal is not pending recovery.
         });
     }
@@ -159,7 +160,8 @@ public sealed class SavedLayoutTests
             Assert.True(second.Save(new PenSettings { Title = "Portal", PortalFolder = @"D:\Current" }));
             var before = new Dictionary<string, LayoutPresentation>
             {
-                ["Default"] = Presentation(store.Load()), [id] = Presentation(second.Load())
+                ["Default"] = Presentation(store.Load()),
+                [id] = Presentation(second.Load())
             };
             FileStream? locked = null;
             try

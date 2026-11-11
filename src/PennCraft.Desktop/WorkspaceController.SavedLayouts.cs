@@ -115,8 +115,8 @@ internal sealed partial class WorkspaceController
         finally { layoutBusy = false; }
     }
 
-    private static Rect[] MonitorWorkAreas() => System.Windows.Forms.Screen.AllScreens.Select(screen => new Rect(
-        screen.WorkingArea.X, screen.WorkingArea.Y, screen.WorkingArea.Width, screen.WorkingArea.Height)).ToArray();
+    private static Rect[] MonitorWorkAreas() => [.. System.Windows.Forms.Screen.AllScreens.Select(screen => new Rect(
+        screen.WorkingArea.X, screen.WorkingArea.Y, screen.WorkingArea.Width, screen.WorkingArea.Height))];
 
     private Dictionary<string, LayoutPresentation>? ApplySavedLayout(Dictionary<string, LayoutPresentation> target, string displayStamp)
     {

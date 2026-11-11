@@ -24,6 +24,7 @@ internal readonly record struct ScreenGrid(Point Origin, double Step)
 /// <summary>Absolute pointer displacement prevents repeated small deltas from being rounded away.</summary>
 internal sealed record PenGeometryDrag(Rect Bounds, Point Pointer, string? Edge, double StartScale = 1)
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2208:Instantiate argument exceptions correctly", Justification = "<Pending>")]
     internal Rect Calculate(Point pointer, ScreenGrid grid, Size minimum, bool smooth, double targetScale = 1)
     {
         var dx = pointer.X - Pointer.X;

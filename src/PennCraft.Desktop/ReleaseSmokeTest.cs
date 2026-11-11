@@ -46,7 +46,7 @@ internal static class ReleaseSmokeTest
                 throw new InvalidDataException("Smoke state verification failed.");
             var runtimeLocal = File.Exists(Path.Combine(AppContext.BaseDirectory, "coreclr.dll"));
             if (!runtimeLocal) throw new InvalidOperationException("The release must contain its .NET runtime.");
-            return WriteReport(reportPath, new { Success = true, Version = AppInfo.Version, SelfContained = runtimeLocal }) ? 0 : 1;
+            return WriteReport(reportPath, new { Success = true, AppInfo.Version, SelfContained = runtimeLocal }) ? 0 : 1;
         }
         catch (Exception exception)
         {

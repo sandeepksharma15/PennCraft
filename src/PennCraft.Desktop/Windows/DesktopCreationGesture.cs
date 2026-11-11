@@ -13,7 +13,7 @@ internal sealed partial class DesktopCreationGesture : IDisposable
     private readonly Action dismiss;
     private static readonly int[] ModifierKeys = [16, 17, 18, 91, 92, 27];
     private ScreenPoint lastPoint;
-    private readonly BlockingCollection<Candidate> candidates = new(1);
+    private readonly BlockingCollection<Candidate> candidates = [with(1)];
     private readonly Thread hookThread;
     private readonly Thread automationThread;
     private readonly MouseCallback callback;
