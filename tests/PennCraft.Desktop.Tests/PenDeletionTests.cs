@@ -13,11 +13,11 @@ public sealed class PenDeletionTests
         using var fixture = new Fixture();
         var into = fixture.Moves.MoveInto(Path.Combine(fixture.Desktop, "Keep.txt"));
         Assert.True(into.Moved, into.Error);
-        Assert.True(fixture.Store.Save(new PenSettings { ItemPaths = [into.Destination] }));
+        Assert.True(fixture.Store().Save(new PenSettings { ItemPaths = [into.Destination] }));
         Assert.Null(fixture.Moves.Acknowledge([into.OperationId!.Value]));
         var back = fixture.Moves.MoveOut(into.Destination);
         Assert.True(back.Moved, back.Error);
-        Assert.True(fixture.Store.Save(new PenSettings()));
+        Assert.True(fixture.Store().Save(new PenSettings()));
         Assert.Null(fixture.Moves.Acknowledge([back.OperationId!.Value]));
         var result = fixture.Service.Delete("Default");
         Assert.True(result.Removed, result.Error);
@@ -52,9 +52,9 @@ public sealed class PenDeletionTests
     public void RefusesDeletionWhenAnythingNeedsPreserving(string kind)
     {
         using var fixture = new Fixture();
-        if (kind == "membership") Assert.True(fixture.Store.Save(new PenSettings { ItemPaths = [Path.Combine(fixture.Desktop, "Missing.txt")] }));
-        if (kind == "recycle") Assert.True(fixture.Store.Save(new PenSettings { ItemPaths = [VirtualDesktopItem.RecycleBin] }));
-        if (kind == "portal") Assert.True(fixture.Store.Save(new PenSettings { PortalFolder = fixture.Desktop }));
+        if (kind == "membership") Assert.True(fixture.Store().Save(new PenSettings { ItemPaths = [Path.Combine(fixture.Desktop, "Missing.txt")] }));
+        if (kind == "recycle") Assert.True(fixture.Store().Save(new PenSettings { ItemPaths = [VirtualDesktopItem.RecycleBin] }));
+        if (kind == "portal") Assert.True(fixture.Store().Save(new PenSettings { PortalFolder = fixture.Desktop }));
         if (kind == "untracked") File.WriteAllText(Path.Combine(fixture.Moves.StorageDirectory, "Untracked.txt"), "keep");
         if (kind == "metadata") File.WriteAllText(Path.Combine(Path.GetDirectoryName(fixture.Moves.StorageDirectory)!, "Unknown.txt"), "keep");
         if (kind == "pending") MoveJournalFile.Write(fixture.Moves.JournalPath,
@@ -148,7 +148,7 @@ public sealed class PenDeletionTests
         public WorkspaceStore Workspace { get; }
         public string OtherId { get; } = Guid.NewGuid().ToString("N");
         public PenMoveService Moves { get; }
-        public PenSettingsStore Store => new(Workspace.SettingsPath("Default"));
+        public PenSettingsStore Store() => new(Workspace.SettingsPath("Default"));
         public PenDeletionService Service { get; }
 
         public Fixture()
@@ -156,7 +156,7 @@ public sealed class PenDeletionTests
             Desktop = Directory.CreateDirectory(Path.Combine(Root, "Desktop")).FullName;
             Workspace = new WorkspaceStore(Path.Combine(Root, "Settings"));
             Workspace.Save(new WorkspaceSettings(1, ["Default", OtherId]));
-            Assert.True(Store.Save(new PenSettings()));
+            Assert.True(Store().Save(new PenSettings()));
             Assert.True(new PenSettingsStore(Workspace.SettingsPath(OtherId)).Save(new PenSettings { Title = "Other" }));
             Moves = new PenMoveService(Desktop);
             Assert.Null(Moves.Recover([]).Error);

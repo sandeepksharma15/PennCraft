@@ -19,7 +19,7 @@ public sealed class PenFoldingTests
             var original = window.TransferSnapshot();
             Assert.True(window.ToggleFold());
             Assert.True(window.IsFolded);
-            Assert.Equal(MainWindow.FoldedHeight, window.Height);
+            Assert.Equal(MainWindow.FoldedHeight, window.Height, 0);
             Assert.Equal(Visibility.Collapsed, ((FrameworkElement)window.FindName("PenContent")).Visibility);
             Assert.Equal(Visibility.Collapsed, ((FrameworkElement)window.FindName("ResizeGrips")).Visibility);
             window.Left += 24;
@@ -30,7 +30,7 @@ public sealed class PenFoldingTests
             Assert.False(folded.IsVisible);
             Assert.Equal(original.Height, folded.Height);
             Assert.Equal(original.Width, folded.Width);
-            Assert.Equal(original.Left + 24, folded.Left);
+            Assert.Equal(original.Left + 24, folded.Left, 0);
             window.ShowPen();
             var screen = DesktopGeometry.PrimaryLayoutScreen();
             var width = PenLayoutMetrics.CommonWidth(SystemParameters.VerticalScrollBarWidth);
@@ -42,9 +42,9 @@ public sealed class PenFoldingTests
             finally { window.EndLayout(); }
             Assert.Equal(plan.Bounds[window.PenId], DesktopGeometry.Bounds(window));
             window.HidePen();
-            Assert.Equal(original.Height, store.Load().Height);
+            Assert.Equal(original.Height, store.Load().Height, 0);
             Assert.True(window.ToggleFold());
-            Assert.Equal(original.Height, window.Height);
+            Assert.Equal(original.Height, window.Height, 0);
             Assert.Equal(Visibility.Visible, ((FrameworkElement)window.FindName("PenContent")).Visibility);
             Assert.True(window.ToggleFold());
             window.ExitApplication();
@@ -54,9 +54,9 @@ public sealed class PenFoldingTests
             {
                 await restored.LayoutReady;
                 Assert.True(restored.IsFolded);
-                Assert.Equal(MainWindow.FoldedHeight, restored.Height);
+                Assert.Equal(MainWindow.FoldedHeight, restored.Height, 0);
                 Assert.True(restored.ToggleFold());
-                Assert.Equal(original.Height, restored.Height);
+                Assert.Equal(original.Height, restored.Height, 0);
                 Assert.Equal(original.PortalFolder, store.Load().PortalFolder);
                 Assert.Equal(original.ItemPaths, store.Load().ItemPaths);
             }

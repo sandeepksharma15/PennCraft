@@ -1,5 +1,31 @@
 # 02-upgrade-projects: Upgrade all projects to net11.0-windows
 
+## Research Findings
+
+### TFM Changes
+- `src\PennCraft.Desktop\PennCraft.Desktop.csproj`: `net10.0-windows` → `net11.0-windows`
+- `tests\PennCraft.Desktop.Tests\PennCraft.Desktop.Tests.csproj`: `net10.0-windows` → `net11.0-windows`
+
+### Source-Incompatible (Api.0002) — Requires Code Fixes
+All 12 source-incompatible occurrences are `System.Drawing.Icon` / `System.Drawing.Bitmap` APIs:
+- `src\PennCraft.Desktop\AppInfo.cs` (lines 32-36): `Icon(Stream, Size)` ctor, `Icon.Clone()`
+- `src\PennCraft.Desktop\TrayCommands.cs` (lines 12, 58, 69): `Icon` field, assignment, `Dispose()`
+- `src\PennCraft.Desktop\ReleaseSmokeTest.cs` (line 24): `AppInfo.CreateTrayIcon()`
+- `tests\PennCraft.Desktop.Tests\BetaReadinessTests.cs` (lines 10-14): `Icon.Width`, `Icon.Height`, `Icon.ToBitmap()`, `Bitmap.GetPixel()`
+
+Strategy: update TFMs, build, then fix any actual compilation errors from these APIs.
+
+### Behavioral Notices (Api.0003) — Advisory, no automatic fix
+- `System.Text.Json.JsonDocument` (2 uses) — advisory only
+- `System.Environment.OSVersion` (1 use) — advisory only
+- `System.Environment.TickCount64` (5 uses, desktop + test) — advisory only
+- `System.Uri.TryCreate` (1 use) — advisory only
+
+### Packages
+All 17 NuGet packages confirmed compatible with net11.0 — no package changes needed.
+
+---
+
 Update both projects from `net10.0-windows` to `net11.0-windows`. This is the core
 upgrade task covering TFM changes, any needed code fixes for the 18 source-incompatible
 API issues detected in the assessment, and a review of the 15 behavioral-change notices

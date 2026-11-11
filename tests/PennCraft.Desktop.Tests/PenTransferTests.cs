@@ -23,12 +23,12 @@ public sealed class PenTransferTests
         Assert.False(File.Exists(path));
         Assert.Equal("Keep", File.ReadAllText(destination));
         Assert.Equal(identity, NativeFileMove.Identity(destination));
-        Assert.Empty(fixture.SourceStore.Load().ItemPaths);
-        Assert.Equal(new[] { destination }, fixture.TargetStore.Load().ItemPaths);
-        Assert.Equal("Source tools", fixture.SourceStore.Load().Title);
-        Assert.Equal(-300, fixture.SourceStore.Load().Left);
-        Assert.Equal("Destination notes", fixture.TargetStore.Load().Title);
-        Assert.False(fixture.TargetStore.Load().IsVisible);
+        Assert.Empty(fixture.SourceStore().Load().ItemPaths);
+        Assert.Equal(new[] { destination }, fixture.TargetStore().Load().ItemPaths);
+        Assert.Equal("Source tools", fixture.SourceStore().Load().Title);
+        Assert.Equal(-300, fixture.SourceStore().Load().Left);
+        Assert.Equal("Destination notes", fixture.TargetStore().Load().Title);
+        Assert.False(fixture.TargetStore().Load().IsVisible);
         Assert.Null(fixture.NewService().Recover());
     }
 
@@ -59,8 +59,8 @@ public sealed class PenTransferTests
         fixture.SetSource(reference);
         var result = fixture.Transfer(reference, NativeFileMove.Identity(reference));
         Assert.True(result.Completed, result.Error);
-        Assert.Empty(fixture.SourceStore.Load().ItemPaths);
-        Assert.Equal(new[] { reference }, fixture.TargetStore.Load().ItemPaths);
+        Assert.Empty(fixture.SourceStore().Load().ItemPaths);
+        Assert.Equal(new[] { reference }, fixture.TargetStore().Load().ItemPaths);
         Assert.Equal("External", File.ReadAllText(reference));
         Assert.False(Directory.Exists(fixture.TargetMoves.StorageDirectory));
     }
@@ -76,14 +76,14 @@ public sealed class PenTransferTests
         Assert.True(into.Moved, into.Error);
         Assert.Null(fixture.TargetMoves.Acknowledge([into.OperationId!.Value]));
         fixture.Target = fixture.Target with { ItemPaths = [into.Destination] };
-        Assert.True(fixture.TargetStore.Save(fixture.Target));
+        Assert.True(fixture.TargetStore().Save(fixture.Target));
         var result = fixture.Transfer(source, NativeFileMove.Identity(source));
         Assert.False(result.Completed);
         Assert.False(result.NeedsRecovery);
         Assert.Equal("Source", File.ReadAllText(source));
         Assert.Equal("Destination", File.ReadAllText(into.Destination));
-        Assert.Equal(new[] { source }, fixture.SourceStore.Load().ItemPaths);
-        Assert.Equal(new[] { into.Destination }, fixture.TargetStore.Load().ItemPaths);
+        Assert.Equal(new[] { source }, fixture.SourceStore().Load().ItemPaths);
+        Assert.Equal(new[] { into.Destination }, fixture.TargetStore().Load().ItemPaths);
     }
 
     [Fact]
@@ -94,12 +94,12 @@ public sealed class PenTransferTests
         File.WriteAllText(path, "Keep");
         fixture.SetSource(path);
         fixture.Target = fixture.Target with { ItemPaths = [path] };
-        Assert.True(fixture.TargetStore.Save(fixture.Target));
+        Assert.True(fixture.TargetStore().Save(fixture.Target));
         Assert.False(fixture.Transfer(path, NativeFileMove.Identity(path)).Completed);
         var same = fixture.NewService().Transfer("Default", "Default", path, NativeFileMove.Identity(path),
             fixture.Source, fixture.Source, fixture.SourceMoves, fixture.SourceMoves);
         Assert.False(same.Completed);
-        Assert.Equal(new[] { path }, fixture.SourceStore.Load().ItemPaths);
+        Assert.Equal(new[] { path }, fixture.SourceStore().Load().ItemPaths);
         Assert.Equal("Keep", File.ReadAllText(path));
     }
 
@@ -123,16 +123,16 @@ public sealed class PenTransferTests
         if (checkpoint == TransferCheckpoint.IntentSaved)
         {
             Assert.True(File.Exists(source));
-            Assert.Equal(new[] { source }, fixture.SourceStore.Load().ItemPaths);
-            Assert.Empty(fixture.TargetStore.Load().ItemPaths);
+            Assert.Equal(new[] { source }, fixture.SourceStore().Load().ItemPaths);
+            Assert.Empty(fixture.TargetStore().Load().ItemPaths);
         }
         else
         {
             var destination = Path.Combine(fixture.TargetMoves.StorageDirectory, "Recover.txt");
             Assert.False(File.Exists(source));
             Assert.Equal(identity, NativeFileMove.Identity(destination));
-            Assert.Empty(fixture.SourceStore.Load().ItemPaths);
-            Assert.Equal(new[] { destination }, fixture.TargetStore.Load().ItemPaths);
+            Assert.Empty(fixture.SourceStore().Load().ItemPaths);
+            Assert.Equal(new[] { destination }, fixture.TargetStore().Load().ItemPaths);
             Assert.Equal("Keep", File.ReadAllText(destination));
         }
         Assert.Null(fixture.NewService().Recover()); // Idempotent after acknowledgment.
@@ -147,8 +147,8 @@ public sealed class PenTransferTests
         var service = fixture.NewService(stage => { if (stage == TransferCheckpoint.IntentSaved) throw new IOException("Interrupted"); });
         Assert.True(fixture.Transfer(reference, null, service).NeedsRecovery);
         Assert.Null(fixture.NewService().Recover());
-        Assert.Empty(fixture.SourceStore.Load().ItemPaths);
-        Assert.Equal(new[] { reference }, fixture.TargetStore.Load().ItemPaths);
+        Assert.Empty(fixture.SourceStore().Load().ItemPaths);
+        Assert.Equal(new[] { reference }, fixture.TargetStore().Load().ItemPaths);
         Assert.False(File.Exists(reference));
     }
 
@@ -166,8 +166,8 @@ public sealed class PenTransferTests
         }
         Assert.Equal("Keep", File.ReadAllText(source));
         Assert.Null(fixture.NewService().Recover());
-        Assert.Equal(new[] { source }, fixture.SourceStore.Load().ItemPaths);
-        Assert.Empty(fixture.TargetStore.Load().ItemPaths);
+        Assert.Equal(new[] { source }, fixture.SourceStore().Load().ItemPaths);
+        Assert.Empty(fixture.TargetStore().Load().ItemPaths);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public sealed class PenTransferTests
             Assert.False(result.NeedsRecovery);
         }
         Assert.Equal("Keep", File.ReadAllText(source));
-        Assert.Empty(fixture.TargetStore.Load().ItemPaths);
+        Assert.Empty(fixture.TargetStore().Load().ItemPaths);
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public sealed class PenTransferTests
         File.WriteAllText(service.JournalPath, JsonSerializer.Serialize(new PenTransferJournal(1, intent)));
         Assert.NotNull(service.Recover());
         Assert.Equal("Keep", File.ReadAllText(outside));
-        Assert.Empty(fixture.TargetStore.Load().ItemPaths);
+        Assert.Empty(fixture.TargetStore().Load().ItemPaths);
     }
 
     [Fact]
@@ -248,7 +248,7 @@ public sealed class PenTransferTests
         Assert.False(result.Completed);
         Assert.Equal("Replacement", File.ReadAllText(source));
         Assert.Equal("Original", File.ReadAllText(preserved));
-        Assert.Empty(fixture.TargetStore.Load().ItemPaths);
+        Assert.Empty(fixture.TargetStore().Load().ItemPaths);
     }
 
     [Fact]
@@ -282,8 +282,8 @@ public sealed class PenTransferTests
         public PenMoveService TargetMoves { get; }
         public PenSettings Source { get; private set; } = new() { Title = "Source tools", Left = -300 };
         public PenSettings Target { get; set; } = new() { Title = "Destination notes", IsVisible = false };
-        public PenSettingsStore SourceStore => new(Workspace.SettingsPath("Default"));
-        public PenSettingsStore TargetStore => new(Workspace.SettingsPath(TargetId));
+        public PenSettingsStore SourceStore() => new(Workspace.SettingsPath("Default"));
+        public PenSettingsStore TargetStore() => new(Workspace.SettingsPath(TargetId));
 
         public Fixture()
         {
@@ -295,14 +295,14 @@ public sealed class PenTransferTests
             TargetMoves = new PenMoveService(Desktop, TargetId);
             Assert.Null(SourceMoves.Recover([]).Error);
             Assert.Null(TargetMoves.Recover([]).Error);
-            Assert.True(SourceStore.Save(Source));
-            Assert.True(TargetStore.Save(Target));
+            Assert.True(SourceStore().Save(Source));
+            Assert.True(TargetStore().Save(Target));
         }
 
         public void SetSource(string path)
         {
             Source = Source with { ItemPaths = [path], TrackedItems = ItemTracking.Capture([path], []) };
-            Assert.True(SourceStore.Save(Source));
+            Assert.True(SourceStore().Save(Source));
         }
 
         public string StoreItem(string name, string content)

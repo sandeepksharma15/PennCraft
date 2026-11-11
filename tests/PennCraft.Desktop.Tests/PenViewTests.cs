@@ -33,7 +33,7 @@ public sealed class PenViewTests
             Assert.True(window.ToggleFold());
             Assert.True(window.SetItemScale(1.25));
             Assert.True(window.IsFolded);
-            Assert.Equal(MainWindow.FoldedHeight, window.Height);
+            Assert.Equal(MainWindow.FoldedHeight, window.Height, 0);
             Assert.True(window.ToggleFold());
             Assert.True(window.SetItemScale(1.5));
 

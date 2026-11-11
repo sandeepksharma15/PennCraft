@@ -22,7 +22,7 @@ public sealed class PortalMoveTests
         var destination = Path.Combine(fixture.Folder, Path.GetFileName(source));
         Assert.False(PenMembership.Exists(source));
         Assert.Equal(folder ? "nested" : "shortcut bytes", File.ReadAllText(folder ? Path.Combine(destination, "child.txt") : destination));
-        Assert.Empty(fixture.PortalStore.Load().ItemPaths);
+        Assert.Empty(fixture.PortalStore().Load().ItemPaths);
         Assert.Null(fixture.Service.Move(fixture.PortalId, null, destination, fixture.Desktop,
             NativeFileMove.Identity(destination), Rename));
         Assert.True(PenMembership.Exists(source));
@@ -37,14 +37,14 @@ public sealed class PortalMoveTests
         var outcome = fixture.PenMoves.MoveInto(desktopFile);
         Assert.True(outcome.Moved);
         Assert.Null(fixture.PenMoves.Acknowledge([outcome.OperationId!.Value]));
-        Assert.True(fixture.PenStore.Save(new PenSettings { ItemPaths = [outcome.Destination] }));
+        Assert.True(fixture.PenStore().Save(new PenSettings { ItemPaths = [outcome.Destination] }));
         Assert.Null(fixture.Service.Move("Default", fixture.PortalId, outcome.Destination, fixture.Folder,
             NativeFileMove.Identity(outcome.Destination), Rename));
-        Assert.Empty(fixture.PenStore.Load().ItemPaths);
+        Assert.Empty(fixture.PenStore().Load().ItemPaths);
         var portalFile = Path.Combine(fixture.Folder, "File.txt");
         Assert.Null(fixture.Service.Move(fixture.PortalId, "Default", portalFile, fixture.PenMoves.StorageDirectory,
             NativeFileMove.Identity(portalFile), Rename));
-        Assert.Equal(outcome.Destination, Assert.Single(fixture.PenStore.Load().ItemPaths));
+        Assert.Equal(outcome.Destination, Assert.Single(fixture.PenStore().Load().ItemPaths));
         Assert.Equal("original", File.ReadAllText(outcome.Destination));
     }
 
@@ -198,16 +198,16 @@ public sealed class PortalMoveTests
         public WorkspaceStore Workspace { get; }
         public PortalMoveService Service { get; }
         public PenMoveService PenMoves { get; }
-        public PenSettingsStore PenStore => new(Workspace.SettingsPath("Default"));
-        public PenSettingsStore PortalStore => new(Workspace.SettingsPath(PortalId));
+        public PenSettingsStore PenStore() => new(Workspace.SettingsPath("Default"));
+        public PenSettingsStore PortalStore() => new(Workspace.SettingsPath(PortalId));
         public Fixture()
         {
             Desktop = Directory.CreateDirectory(Path.Combine(Root, "Desktop")).FullName;
             Folder = Directory.CreateDirectory(Path.Combine(Root, "Linked")).FullName;
             Workspace = new WorkspaceStore(Path.Combine(Root, "Settings"));
             Workspace.Save(new WorkspaceSettings(1, ["Default", PortalId]));
-            Assert.True(PenStore.Save(new PenSettings()));
-            Assert.True(PortalStore.Save(new PenSettings { PortalFolder = Folder, IsVisible = false }));
+            Assert.True(PenStore().Save(new PenSettings()));
+            Assert.True(PortalStore().Save(new PenSettings { PortalFolder = Folder, IsVisible = false }));
             PenMoves = new PenMoveService(Desktop);
             Assert.Null(PenMoves.Recover([]).Error);
             Service = new PortalMoveService(Workspace, Desktop);

@@ -7,7 +7,7 @@
     <Description>Desktop organization for Windows</Description>
     <Copyright>Copyright © 2026 PennCraft contributors</Copyright>
     <PublishTrimmed>false</PublishTrimmed>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net11.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>disable</ImplicitUsings>
