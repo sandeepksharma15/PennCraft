@@ -11,7 +11,7 @@
 
 ## Initial technology
 
-- C# / .NET 10 LTS; WPF for Windows desktop UI.
+- C# / .NET 11; WPF for Windows desktop UI.
 - Win32 interop and Shell COM only where necessary.
 - xUnit v3 for automated tests.
 - JSON persistence initially; consider SQLite only if requirements justify it.

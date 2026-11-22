@@ -34,7 +34,7 @@ Use an isolated Windows 11 account/VM with backed-up samples:
 
 ## Local packaging
 
-From a Git checkout on Windows with .NET 10 SDK and Inno Setup 6:
+From a Git checkout on Windows with the .NET 11 SDK and Inno Setup 6. This describes building from current source; existing downloads already include their own runtime.
 ```powershell
 dotnet restore PennCraft.slnx
 dotnet build PennCraft.slnx -c Release --no-restore
