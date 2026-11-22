@@ -2,6 +2,7 @@
 
 PennCraft is in beta. Discuss significant behavior or architecture changes before implementing them.
 
+- Build from source on Windows with the .NET 11 SDK, matching the Windows CI workflows.
 - Keep changes focused, idiomatic and well formatted.
 - Preserve files, metadata and recovery records; document shell limitations.
 - Use a feature branch and meaningful policy/native-boundary tests.

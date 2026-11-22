@@ -29,7 +29,7 @@ Shell placement, Explorer restarts, virtual desktops, mixed-DPI monitors and thi
 
 ## Build and contribute
 
-C# · .NET 10 · WPF · xUnit v3. Requires Windows and .NET 10 SDK.
+C# · .NET 11 · WPF · xUnit v3. Building from source requires Windows and the .NET 11 SDK.
 
 ```powershell
 dotnet restore PennCraft.slnx
